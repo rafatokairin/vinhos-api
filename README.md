@@ -1,4 +1,4 @@
-# API REST: E-Commerce de Vinhos:
+# API REST - E-Commerce de Vinhos:
 
 Esse repositório é dedicado ao desenvovimento do backend de uma loja virtual de vinhos. Principalmente, pretendemos desenvolver as funcionalidades:
 
