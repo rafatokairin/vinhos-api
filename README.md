@@ -11,3 +11,5 @@ Esse repositório é dedicado ao desenvovimento do backend de uma loja virtual d
 4. Finalização de Compras: Permite a efetivação de compras, registrando o valor total e associando os itens do carrinho à compra, gerando uma nota fiscal.
 
 ## Relatórios:
+
+- Para os relatórios, pensamos em montar gráficos de vinhos por estilos, uvas, vinículas, além de informações sobre o desempenhos das compras (Ex.: quais foram os vinhos mais vendidos, etc).
