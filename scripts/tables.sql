@@ -16,6 +16,7 @@ CREATE TABLE vinhos.vinhos (
     preco DECIMAL(10, 2) NOT NULL,
     quantidade_estoque INT DEFAULT 0,
     img_path VARCHAR(255),
+    CONSTRAINT ch_preco CHECK (preco >= 0)
     CONSTRAINT pk_vinho PRIMARY KEY (nome, vinicula) -- Chave primária composta por nome e vinícola
 );
 
@@ -83,6 +84,7 @@ CREATE TABLE vinhos.carrinho (
     numero SERIAL,
     usuario_email VARCHAR(255),
     valor_total DECIMAL(10, 2) DEFAULT 0,
+    CONSTRAINT ck_valor_total CHECK (valor_total >= 0)
     CONSTRAINT fk_usuario_email FOREIGN KEY (usuario_email)
         REFERENCES vinhos.usuarios(email) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT pk_carrinho PRIMARY KEY (numero)
@@ -94,6 +96,7 @@ CREATE TABLE vinhos.carrinho_produto (
     vinicula VARCHAR(50),
     quantidade INT DEFAULT 0,
     subtotal DECIMAL(10, 2) DEFAULT 0,
+    CONSTRAINT ck_subtotal CHECK (subtotal >= 0)
     CONSTRAINT fk_numero_carrinho FOREIGN KEY (numero_carrinho)
         REFERENCES vinhos.carrinho(numero) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_nome_vinho FOREIGN KEY (nome_vinho, vinicula)
@@ -104,6 +107,7 @@ CREATE TABLE vinhos.carrinho_produto (
 CREATE TABLE vinhos.compras (
     numero INT,
     valor_total DECIMAL(10, 2) DEFAULT 0,
+    CONSTRAINT ck_valor_total CHECK (valor_total >= 0)
     CONSTRAINT pk_compra PRIMARY KEY (numero)
 );
 
@@ -114,6 +118,7 @@ CREATE TABLE vinhos.compra_carrinho_produto (
     vinicula VARCHAR(50),
     quantidade INT DEFAULT 0,
     subtotal DECIMAL(10, 2) DEFAULT 0,
+    CONSTRAINT ck_subtotal CHECK (subtotal >= 0)
     CONSTRAINT fk_numero_compra FOREIGN KEY (numero_compra)
         REFERENCES vinhos.compras(numero) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_carrinho_vinho FOREIGN KEY (numero_carrinho, nome_vinho, vinicula)
