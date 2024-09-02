@@ -65,7 +65,7 @@ WHERE email = 'joao.silva@example.com';
 DELETE FROM vinhos.vinhos WHERE nome = 'Château Margaux' AND vinicula = 'Château Margaux';
 
 -- REMOVER USUÁRIO
-DELETE FROM vinhos.usuarios WHERE email = 'joao.silva@example.com';
+DELETE FROM vinhos.usuarios WHERE email = 'maria.oliveira@example.com';
 
 -- REMOVER COMPRA
 DELETE FROM vinhos.compras WHERE numero = 123;
