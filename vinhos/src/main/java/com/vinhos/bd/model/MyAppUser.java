@@ -16,10 +16,10 @@ public class MyAppUser {
     @Id
     @Column(name = "email")
     @JsonProperty("email")
-    private String email;
+    private String username;
     @Column(name = "nome")
     @JsonProperty("nome")
-    private String username;
+    private String nome;
     @Column(name = "senha")
     @JsonProperty("senha")
     private String password;

@@ -52,6 +52,8 @@ public class SecurityConfig {
                     registry.requestMatchers("/signup").permitAll();
                     registry.requestMatchers("/update/**").permitAll();
                     registry.requestMatchers("/delete/**").permitAll();
+                    registry.requestMatchers("vinhos/add/**").permitAll();
+                    registry.requestMatchers("vinhos/delete/**").permitAll();
                     registry.anyRequest().authenticated();
                 })
                 .build();

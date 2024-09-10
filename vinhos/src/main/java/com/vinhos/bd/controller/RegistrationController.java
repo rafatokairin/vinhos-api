@@ -20,8 +20,8 @@ public class RegistrationController {
 
     @PostMapping("/signup")
     public ResponseEntity<String> createUser(@RequestBody MyAppUser user) {
-        if (myAppUserRepository.existsById(user.getEmail())) {
-            return new ResponseEntity<>("Email já cadastrado", HttpStatus.BAD_REQUEST);
+        if (myAppUserRepository.existsById(user.getUsername())) {
+            return new ResponseEntity<>("Email já cadastrado", HttpStatus.CONFLICT);
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -36,8 +36,8 @@ public class RegistrationController {
             return new ResponseEntity<>("Usuário não encontrado", HttpStatus.NOT_FOUND);
         }
         MyAppUser user = existingUser.get();
-        if (userUpdates.getUsername() != null) {
-            user.setUsername(userUpdates.getUsername());
+        if (userUpdates.getNome() != null) {
+            user.setNome(userUpdates.getNome());
         }
         if (userUpdates.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(userUpdates.getPassword()));

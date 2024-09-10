@@ -18,8 +18,8 @@ public class MyAppUserRepository {
 
     private final RowMapper<MyAppUser> rowMapper = (rs, rowNum) -> {
         MyAppUser user = new MyAppUser();
-        user.setEmail(rs.getString("email"));
-        user.setUsername(rs.getString("nome"));
+        user.setUsername(rs.getString("email"));
+        user.setNome(rs.getString("nome"));
         user.setPassword(rs.getString("senha"));
         return user;
     };
@@ -42,12 +42,12 @@ public class MyAppUserRepository {
 
     public void save(MyAppUser user) {
         String sql = "INSERT INTO vinhos.usuarios (email, nome, senha) VALUES (?, ?, ?)";
-        jdbcTemplate.update(sql, user.getEmail(), user.getUsername(), user.getPassword());
+        jdbcTemplate.update(sql, user.getUsername(), user.getNome(), user.getPassword());
     }
 
     public void update(MyAppUser user) {
         String sql = "UPDATE vinhos.usuarios SET nome = ?, senha = ? WHERE email = ?";
-        jdbcTemplate.update(sql, user.getUsername(), user.getPassword(), user.getEmail());
+        jdbcTemplate.update(sql, user.getNome(), user.getPassword(), user.getUsername());
     }
 
     public void deleteById(String email) {
