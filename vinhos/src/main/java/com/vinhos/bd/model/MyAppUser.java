@@ -1,26 +1,41 @@
 package com.vinhos.bd.model;
+import java.sql.Date;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Entity
-@Setter
-@Table(name = "usuarios", schema = "vinhos")
 public class MyAppUser {
-    @Id
-    @Column(name = "email")
-    @JsonProperty("email")
-    private String username;
-    @Column(name = "nome")
-    @JsonProperty("nome")
+    private String email;
     private String nome;
-    @Column(name = "senha")
-    @JsonProperty("senha")
-    private String password;
+    private String senha;
+    private Date dataRegistro;
+
+    public String getEmail () {
+        return email;
+    }
+
+    public void setEmail (String email) {
+        this.email = email;
+    }
+
+    public String getNome () {
+        return nome;
+    }
+
+    public void setNome (String nome) {
+        this.nome = nome;
+    }
+
+    public String getSenha () {
+        return senha;
+    }
+
+    public void setSenha (String senha) {
+        this.senha = senha;
+    }
+
+    public Date getDataRegistro () {
+        return dataRegistro;
+    }
+
+    public void setDataRegistro (Date dataRegistro) {
+        this.dataRegistro = dataRegistro;
+    }
 }
