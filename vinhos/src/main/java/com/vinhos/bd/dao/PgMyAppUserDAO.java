@@ -21,8 +21,8 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
             "WHERE email = ? AND senha = md5(?);";
 
     private static final String CREATE_QUERY =
-            "INSERT INTO vinhos.usuarios(nome, email, senha, data_registro) " +
-            "VALUES(?, ?, md5(?), ?);";
+            "INSERT INTO vinhos.usuarios(nome, email, senha) " +
+            "VALUES(?, ?, md5(?));";
 
     private static final String ALL_QUERY =
             "SELECT email " +
@@ -77,7 +77,6 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
             statement.setString(1, usuario.getNome());
             statement.setString(2, usuario.getEmail());
             statement.setString(3, usuario.getSenha());
-            statement.setDate(4, usuario.getDataRegistro());
 
             statement.executeUpdate();
         } catch (SQLException ex) {
