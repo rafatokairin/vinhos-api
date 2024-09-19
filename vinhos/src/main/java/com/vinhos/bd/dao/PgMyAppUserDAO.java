@@ -16,7 +16,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
     private final Connection connection;
 
     private static final String AUTHENTICATE_QUERY =
-            "SELECT email, nome, senha, data_registro " +
+            "SELECT email, nome, data_registro " +
             "FROM vinhos.usuarios " +
             "WHERE email = ? AND senha = md5(?);";
 
