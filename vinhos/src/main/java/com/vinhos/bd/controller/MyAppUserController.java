@@ -22,7 +22,7 @@ import java.sql.SQLException;
 public class MyAppUserController extends HttpServlet {
 
     @Override
-    protected void doPost (HttpServletRequest request, HttpServletResponse response)
+     protected void doPost (HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         DAO<MyAppUser, String> dao;
