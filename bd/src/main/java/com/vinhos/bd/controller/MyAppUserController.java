@@ -4,13 +4,8 @@ import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.model.MyAppUser;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -20,17 +15,13 @@ import java.sql.SQLException;
 public class MyAppUserController {
 
     DAO<MyAppUser, String> dao;
-    @PostMapping (value="/create")
-    public void createUser(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    @PostMapping(value="/create")
+    public void createUser(@RequestBody MyAppUser user, HttpServletResponse response) throws ServletException, IOException {
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getMyAppUserDAO();
 
-            MyAppUser user = new MyAppUser();
-            HttpSession session = request.getSession();
-
-            user.setNome(request.getParameter("nome"));
-            user.setEmail(request.getParameter("email"));
-            user.setSenha(request.getParameter("senha"));
+            // Agora os dados do usuário vêm do corpo da requisição JSON
             dao.create(user);
             response.setStatus(HttpServletResponse.SC_CREATED); // 201 Created
             response.getWriter().write("Usuário criado com sucesso!");
@@ -41,16 +32,11 @@ public class MyAppUserController {
     }
 
     @PostMapping(value = "/update")
-    public void updateUser(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void updateUser(@RequestBody MyAppUser user, HttpServletResponse response) throws ServletException, IOException {
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getMyAppUserDAO();
 
-            MyAppUser user = new MyAppUser();
-            HttpSession session = request.getSession();
-
-            user.setNome(request.getParameter("nome"));
-            user.setEmail(request.getParameter("email"));
-            user.setSenha(request.getParameter("senha"));
+            // Agora os dados do usuário vêm do corpo da requisição JSON
             dao.update(user);
             response.setStatus(HttpServletResponse.SC_OK); // 200 OK
             response.getWriter().write("Usuário atualizado com sucesso!");
@@ -60,14 +46,13 @@ public class MyAppUserController {
         }
     }
 
-    @PostMapping (value = "/delete")
-    public void deleteUser(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    @PostMapping(value = "/delete")
+    public void deleteUser(@RequestBody MyAppUser user, HttpServletResponse response) throws ServletException, IOException {
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getMyAppUserDAO();
-            HttpSession session = request.getSession();
 
-            String emailToDelete = request.getParameter("email");
-            dao.delete(emailToDelete);
+            // O email a ser deletado ainda pode ser passado como parâmetro
+            dao.delete(user.getEmail());
             response.setStatus(HttpServletResponse.SC_OK); // 200 OK
             response.getWriter().write("Usuário deletado com sucesso!");
         } catch (SQLException | ClassNotFoundException ex) {
