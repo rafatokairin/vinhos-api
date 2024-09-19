@@ -31,6 +31,12 @@ public class MyAppUserController extends HttpServlet {
 
         String servletPath = request.getServletPath();
 
+        if (request.getParameter("nome") == null || request.getParameter("email") == null || request.getParameter("senha") == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Parâmetros necessários estão faltando.");
+            return;
+        }
+
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getMyAppUserDAO();
 

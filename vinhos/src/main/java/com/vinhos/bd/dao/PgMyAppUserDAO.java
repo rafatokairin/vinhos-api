@@ -41,7 +41,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
 
     private static final String UPDATE_WITH_PASSWORD_QUERY =
             "UPDATE vinhos.usuarios " +
-            "SER nome = ?, senha = md5(?) " +
+            "SET nome = ?, senha = md5(?) " +
             "WHERE email = ?;";
 
     private static final String DELETE_QUERY =
