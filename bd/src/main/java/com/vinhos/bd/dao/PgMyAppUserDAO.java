@@ -16,7 +16,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
     private final Connection connection;
 
     private static final String AUTHENTICATE_QUERY =
-            "SELECT email, nome, data_registro " +
+            "SELECT email, nome " +
                     "FROM vinhos.usuarios " +
                     "WHERE email = ? AND senha = md5(?);";
 
@@ -25,13 +25,13 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                     "VALUES(?, ?, md5(?));";
 
     private static final String ALL_QUERY =
-            "SELECT email " +
+            "SELECT nome, email, data_registro " +
                     "FROM vinhos.usuarios " +
-                    "ORDER BY email;";
+                    "ORDER BY nome;";
 
     private static final String READ_QUERY =
-            "SELECT nome, data_registro " +
-                    "FROM vinhos.locais " +
+            "SELECT nome, email, data_registro  " +
+                    "FROM vinhos.usuarios " +
                     "WHERE email = ?;";
 
     private static final String UPDATE_QUERY =
@@ -59,7 +59,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
             try (ResultSet result = statement.executeQuery()) {
                 if (result.next()) {
                     usuario.setNome(result.getString("nome"));
-                    usuario.setDataRegistro(result.getDate("data_registro"));
+                    usuario.setEmail(result.getString("email"));
                 } else {
                     throw new SecurityException("Email ou senha incorretos.");
                 }
@@ -102,6 +102,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
             try (ResultSet result = statement.executeQuery()) {
                 if (result.next()) {
                     user.setNome(result.getString("nome"));
+                    user.setEmail(result.getString("email"));
                     user.setDataRegistro(result.getDate("data_registro"));
                 } else {
                     throw new SQLException("Erro ao visualizar: usuário não encontrado.");
@@ -184,7 +185,9 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
 
             while (result.next()) {
                 MyAppUser user = new MyAppUser();
+                user.setNome(result.getString("nome"));
                 user.setEmail(result.getString("email"));
+                user.setDataRegistro(result.getDate("data_registro"));
 
                 userList.add(user);
             }

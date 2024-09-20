@@ -2,8 +2,8 @@ package com.vinhos.bd.model;
 import java.sql.Date;
 
 public class MyAppUser {
-    private String email;
     private String nome;
+    private String email;
     private String senha;
     private Date dataRegistro;
 
