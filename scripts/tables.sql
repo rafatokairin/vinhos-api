@@ -184,3 +184,6 @@ CREATE TABLE vinhos.compra_carrinho_vinho (
         REFERENCES vinhos.carrinho_vinho(numero_carrinho, numero_vinho) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT pk_compra_carrinho_produto PRIMARY KEY (numero_compra, numero_carrinho, numero_vinho)
 );
+
+ALTER TABLE vinhos.vinhos
+ALTER COLUMN nome SET NOT NULL;
