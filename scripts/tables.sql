@@ -125,3 +125,52 @@ CREATE TABLE vinhos.compra_carrinho_produto (
         REFERENCES vinhos.carrinho_produto(numero_carrinho, nome_vinho, vinicula) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT pk_compra_carrinho_produto PRIMARY KEY (numero_compra, numero_carrinho, nome_vinho, vinicula)
 );
+
+DROP TABLE IF EXISTS vinhos.vinho_tinto CASCADE;
+DROP TABLE IF EXISTS vinhos.vinho_branco CASCADE;
+DROP TABLE IF EXISTS vinhos.vinho_espumante CASCADE;
+DROP TABLE IF EXISTS vinhos.vinho_rose CASCADE;
+DROP TABLE IF EXISTS vinhos.vinho_sobremesa CASCADE;
+DROP TABLE IF EXISTS vinhos.vinho_fortificado CASCADE;
+
+ALTER TABLE vinhos.vinhos
+ADD COLUMN categoria VARCHAR(50) NOT NULL,
+ADD COLUMN estilo VARCHAR(100),
+ADD COLUMN numero SERIAL;
+
+DROP TABLE IF EXISTS vinhos.compra_carrinho_produto CASCADE;
+DROP TABLE IF EXISTS vinhos.carrinho_produto CASCADE;
+
+-- Para manter a chave primária atual (nome, vinicula) e a nova coluna 'numero', você precisará remover a chave primária existente e depois criar uma nova.
+ALTER TABLE vinhos.vinhos
+DROP CONSTRAINT pk_vinho;
+
+ALTER TABLE vinhos.vinhos
+ADD CONSTRAINT pk_vinho PRIMARY KEY (numero);
+
+CREATE TABLE vinhos.carrinho_vinho (
+    numero_carrinho INT,
+    numero_vinho INT,
+    quantidade INT DEFAULT 0,
+    subtotal DECIMAL(10, 2) DEFAULT 0,
+    CONSTRAINT ck_subtotal CHECK (subtotal >= 0),
+    CONSTRAINT fk_numero_carrinho FOREIGN KEY (numero_carrinho)
+        REFERENCES vinhos.carrinho(numero) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_numero_vinho FOREIGN KEY (numero_vinho)
+        REFERENCES vinhos.vinhos(numero) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT pk_carrinho_produto PRIMARY KEY (numero_carrinho, numero_vinho)
+);
+
+CREATE TABLE vinhos.compra_carrinho_vinho (
+    numero_compra INT,
+    numero_carrinho INT,
+    numero_vinho INT,
+    quantidade INT DEFAULT 0,
+    subtotal DECIMAL(10, 2) DEFAULT 0,
+    CONSTRAINT ck_subtotal CHECK (subtotal >= 0),
+    CONSTRAINT fk_numero_compra FOREIGN KEY (numero_compra)
+        REFERENCES vinhos.compras(numero) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_carrinho_vinho FOREIGN KEY (numero_carrinho, numero_vinho)
+        REFERENCES vinhos.carrinho_vinho(numero_carrinho, numero_vinho) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT pk_compra_carrinho_produto PRIMARY KEY (numero_compra, numero_carrinho, numero_vinho)
+);
