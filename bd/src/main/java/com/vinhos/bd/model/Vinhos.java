@@ -2,6 +2,7 @@ package com.vinhos.bd.model;
 
 public class Vinhos {
 
+    private int numero;
     private String nome;
     private int ano;
     private String descricao;
@@ -13,7 +14,6 @@ public class Vinhos {
     private String img_path;
     private String categoria;
     private String estilo;
-    private int numero;
 
     public String getNome() {
         return nome;
