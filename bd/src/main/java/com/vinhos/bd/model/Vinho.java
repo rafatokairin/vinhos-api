@@ -1,9 +1,9 @@
 package com.vinhos.bd.model;
 
-public class Vinhos {
+public class Vinho {
 
-    private int numero;
-    private String nome;
+    private int numero;     // primary key
+    private String nome;    // not null
     private int ano;
     private String descricao;
     private String uva;
@@ -12,7 +12,7 @@ public class Vinhos {
     private double preco;
     private int quantidade_estoque;
     private String img_path;
-    private String categoria;
+    private String categoria;   // not null
     private String estilo;
 
     public String getNome() {

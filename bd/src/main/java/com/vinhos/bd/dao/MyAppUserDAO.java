@@ -6,5 +6,16 @@ import java.sql.SQLException;
 
 public interface MyAppUserDAO extends DAO<MyAppUser, String>{
 
+    /**
+     * Autentica um usuário no sistema comparando seu email e senha com os dados armazenados no banco de dados.
+     *
+     * Se o usuário for autenticado com sucesso, seus dados (nome e email) serão preenchidos no objeto MyAppUser fornecido.
+     * Caso contrário, uma exceção de segurança será lançada indicando falha na autenticação.
+     *
+     * @param usuario Objeto MyAppUser contendo as credenciais (email e senha) a serem verificadas.
+     *
+     * @throws SecurityException Se as credenciais fornecidas (email ou senha) forem inválidas.
+     * @throws SQLException Se houver erro na execução da consulta ao banco de dados.
+     */
     public void authenticate(MyAppUser usuario) throws SQLException, SecurityException;
 }
