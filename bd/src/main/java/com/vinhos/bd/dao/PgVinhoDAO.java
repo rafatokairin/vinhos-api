@@ -2,7 +2,7 @@ package com.vinhos.bd.dao;
 
 import java.sql.Connection;
 
-public class PgVinhoDAO implements VinhoDAO{
+public class PgVinhoDAO /*implements VinhoDAO*/{
 
     private final Connection connection;
 
