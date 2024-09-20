@@ -138,6 +138,16 @@ ADD COLUMN categoria VARCHAR(50) NOT NULL,
 ADD COLUMN estilo VARCHAR(100),
 ADD COLUMN numero SERIAL;
 
+ALTER TABLE vinhos.vinhos
+ADD CONSTRAINT check_categoria_estilo CHECK (
+    (categoria = 'Tinto' AND estilo IN ('Cabernet Sauvignon', 'Merlot', 'Pinot Noir', 'Syrah')) OR
+    (categoria = 'Branco' AND estilo IN ('Chardonnay', 'Sauvignon Blanc', 'Riesling', 'Pinot Grigio')) OR
+    (categoria = 'Espumante' AND estilo IN ('Champagne', 'Prosecco', 'Cava', 'Espumante Rosé')) OR
+    (categoria = 'Rosé' AND estilo IN ('Provence Rosé', 'Tempranillo Rosé', 'Zinfandel Rosé', 'Grenache Rosé')) OR
+    (categoria = 'Sobremesa' AND estilo IN ('Sauternes', 'Porto Branco', 'Moscato d''Asti', 'Tokaji')) OR
+    (categoria = 'Fortificado' AND estilo IN ('Porto (Ruby)', 'Porto (Tawny)', 'Xerez (Sherry)', 'Madeira'))
+);
+
 DROP TABLE IF EXISTS vinhos.compra_carrinho_produto CASCADE;
 DROP TABLE IF EXISTS vinhos.carrinho_produto CASCADE;
 
