@@ -20,6 +20,49 @@ public class VinhoController {
     VinhoDAO vinhoDAO;
     DAO<Vinho, Integer> dao;
 
+    @GetMapping(value = "/all")
+    public List<Vinho> getAllVinhos(HttpServletResponse response) throws ServletException, IOException {
+        List<Vinho> listaVinhos;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            vinhoDAO = daoFactory.getVinhoDAO();
+            listaVinhos = vinhoDAO.all();
+
+            if (listaVinhos.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Nenhum vinho encontrado.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException | IOException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        return listaVinhos;
+    }
+
+    @GetMapping(value = "/read")
+    public Vinho getVinho(@RequestBody Vinho vinho, HttpServletResponse response) throws ServletException, IOException {
+        Vinho vinhoAux;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            vinhoDAO = daoFactory.getVinhoDAO();
+            vinhoAux = vinhoDAO.read(vinho.getNumero());
+
+            if (vinhoAux == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Vinho não encontrado.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException | IOException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+        return vinhoAux;
+    }
+
     @GetMapping(value = "/search")
     public List<Vinho> getVinhosComposto(@RequestBody Vinho vinho, HttpServletResponse response)
         throws ServletException, IOException {
@@ -59,7 +102,7 @@ public class VinhoController {
         }
     }
 
-    @PostMapping(value = "/update/{numero}")
+    @PostMapping(value = "/update")
     public void updateVinho(@RequestBody Vinho vinho, HttpServletResponse response) throws ServletException, IOException {
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             vinhoDAO = daoFactory.getVinhoDAO();
@@ -72,7 +115,7 @@ public class VinhoController {
         }
     }
 
-    @PostMapping(value = "/delete/{numero}")
+    @PostMapping(value = "/delete")
     public void deleteVinho(@RequestBody Vinho vinho, HttpServletResponse response) throws ServletException, IOException {
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             vinhoDAO = daoFactory.getVinhoDAO();
