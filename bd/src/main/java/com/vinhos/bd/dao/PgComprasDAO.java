@@ -1,0 +1,121 @@
+package com.vinhos.bd.dao;
+
+import com.vinhos.bd.model.Compras;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class PgComprasDAO implements ComprasDAO {
+
+    private final Connection connection;
+
+    private static final String CREATE_QUERY =
+            "INSERT INTO vinhos.compras(numero, valor_total) " +
+                    "VALUES(?, ?);";
+
+    private static final String READ_QUERY =
+            "SELECT * FROM vinhos.compras WHERE numero = ?;";
+
+    private static final String UPDATE_QUERY =
+            "UPDATE vinhos.compras SET valor_total = ? WHERE numero = ?;";
+
+    private static final String DELETE_QUERY =
+            "DELETE FROM vinhos.compras WHERE numero = ?;";
+
+    private static final String ALL_QUERY =
+            "SELECT * FROM vinhos.compras ORDER BY numero;";
+
+    public PgComprasDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    @Override
+    public void create(Compras compras) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(CREATE_QUERY)) {
+            statement.setInt(1, compras.getNumero()); // Definindo o número da compra
+            statement.setDouble(2, compras.getValor_total()); // Definindo o valor total
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao criar compra.");
+        }
+    }
+
+    @Override
+    public Compras read(Integer numero) throws SQLException {
+        Compras compra = null;
+
+        try (PreparedStatement statement = connection.prepareStatement(READ_QUERY)) {
+            statement.setInt(1, numero); // Definindo o número da compra a ser lida
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    compra = new Compras();
+                    compra.setNumero(resultSet.getInt("numero"));
+                    compra.setValor_total(resultSet.getDouble("valor_total"));
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao buscar compra.");
+        }
+
+        return compra;
+    }
+
+    @Override
+    public void update(Compras compras) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)) {
+            statement.setDouble(1, compras.getValor_total()); // Atualizando o valor total
+            statement.setInt(2, compras.getNumero()); // Definindo o número da compra a ser atualizada
+
+            if (statement.executeUpdate() < 1) {
+                throw new SQLException("Erro ao atualizar: compra não encontrada.");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao atualizar compra.");
+        }
+    }
+
+    @Override
+    public void delete(Integer numero) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)) {
+            statement.setInt(1, numero); // Definindo o número da compra a ser deletada
+
+            if (statement.executeUpdate() < 1) {
+                throw new SQLException("Erro ao excluir: compra não encontrada.");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao excluir compra.");
+        }
+    }
+
+    @Override
+    public List<Compras> all() throws SQLException {
+        List<Compras> comprasList = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(ALL_QUERY)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Compras compra = new Compras();
+                    compra.setNumero(resultSet.getInt("numero"));
+                    compra.setValor_total(resultSet.getDouble("valor_total"));
+                    comprasList.add(compra);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar todas as compras.");
+        }
+
+        return comprasList;
+    }
+}

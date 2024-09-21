@@ -14,7 +14,6 @@ public class PgCarrinhoDAO implements CarrinhoDAO {
 
     private final Connection connection;
 
-    // Consultas SQL
     private static final String CREATE_QUERY =
             "INSERT INTO vinhos.carrinho(usuario_email) VALUES (?);";
 

@@ -17,6 +17,7 @@ public class PgDAOFactory extends DAOFactory{
         return new PgVinhoDAO(this.connection);
     }
 
-    @Override
     public CarrinhoDAO getCarrinhoDAO() {return new PgCarrinhoDAO(this.connection);}
+
+    public ComprasDAO getComprasDAO() {return new PgComprasDAO(this.connection);}
 }
