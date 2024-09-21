@@ -59,4 +59,30 @@ public class VinhoController {
         }
     }
 
+    @PostMapping(value = "/update/{numero}")
+    public void updateVinho(@PathVariable Integer numero, @RequestBody Vinho vinho, HttpServletResponse response) throws ServletException, IOException {
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            vinhoDAO = daoFactory.getVinhoDAO();
+            vinho.setNumero(numero);
+            vinhoDAO.update(vinho);
+            response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+            response.getWriter().write("Vinho atualizado com sucesso!");
+        } catch (SQLException | ClassNotFoundException | IOException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/delete/{numero}")
+    public void deleteVinho(@PathVariable Integer numero, HttpServletResponse response) throws ServletException, IOException {
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            vinhoDAO = daoFactory.getVinhoDAO();
+            vinhoDAO.delete(numero);
+            response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+            response.getWriter().write("Vinho excluído com sucesso!");
+        } catch (SQLException | ClassNotFoundException | IOException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+        }
+    }
 }
