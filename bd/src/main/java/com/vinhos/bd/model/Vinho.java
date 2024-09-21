@@ -12,7 +12,7 @@ public class Vinho {
     private double preco;
     private int quantidade_estoque;
     private String img_path;
-    private String categoria;   // not null
+    private String categoria;
     private String estilo;
 
     public String getNome() {

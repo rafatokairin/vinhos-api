@@ -159,6 +159,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
         }
     }
 
+    @Override
     public void delete (String email) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)) {
             statement.setString(1, email);
@@ -177,6 +178,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
         }
     }
 
+    @Override
     public List<MyAppUser> all () throws SQLException {
         List<MyAppUser> userList = new ArrayList<>();
 

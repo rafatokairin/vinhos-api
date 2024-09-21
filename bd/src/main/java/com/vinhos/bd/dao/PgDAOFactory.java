@@ -1,5 +1,6 @@
 package com.vinhos.bd.dao;
 
+import java.awt.font.TextHitInfo;
 import java.sql.Connection;
 
 public class PgDAOFactory extends DAOFactory{
@@ -10,5 +11,9 @@ public class PgDAOFactory extends DAOFactory{
 
     public MyAppUserDAO getMyAppUserDAO () {
         return new PgMyAppUserDAO(this.connection);
+    }
+
+    public VinhoDAO getVinhoDAO () {
+        return new PgVinhoDAO(this.connection);
     }
 }
