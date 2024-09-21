@@ -187,3 +187,4 @@ CREATE TABLE vinhos.compra_carrinho_vinho (
 
 ALTER TABLE vinhos.vinhos
 ALTER COLUMN nome SET NOT NULL;
+
