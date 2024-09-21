@@ -16,7 +16,7 @@ public class PgCarrinhoDAO implements CarrinhoDAO {
 
     // Consultas SQL
     private static final String CREATE_QUERY =
-            "INSERT INTO vinhos.carrinho(usuario_email, valor_total) VALUES (?, ?);";
+            "INSERT INTO vinhos.carrinho(usuario_email) VALUES (?);";
 
     private static final String FIND_BY_USUARIO_QUERY =
             "SELECT * FROM vinhos.carrinho WHERE usuario_email = ?;";
@@ -66,7 +66,6 @@ public class PgCarrinhoDAO implements CarrinhoDAO {
     public void create(Carrinho carrinho) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(CREATE_QUERY)) {
             statement.setString(1, carrinho.getUsuario_email()); // Associar o email do usuário
-            statement.setDouble(2, carrinho.getValor_total());
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(PgCarrinhoDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
