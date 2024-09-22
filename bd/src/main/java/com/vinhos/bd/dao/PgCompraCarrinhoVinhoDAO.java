@@ -1,4 +1,4 @@
 package com.vinhos.bd.dao;
 
-public class PgCompraCarrinhoVinhoDAO implements CompraCarrinhoVinhoDAO {
+public class PgCompraCarrinhoVinhoDAO /*implements CompraCarrinhoVinhoDAO */{
 }
