@@ -188,3 +188,40 @@ CREATE TABLE vinhos.compra_carrinho_vinho (
 ALTER TABLE vinhos.vinhos
 ALTER COLUMN nome SET NOT NULL;
 
+-- Função que será chamada pela trigger
+CREATE OR REPLACE FUNCTION atualizar_valor_total_compra()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Caso seja uma inserção ou atualização
+    IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+        UPDATE vinhos.compras
+        SET valor_total = (
+            SELECT COALESCE(SUM(subtotal), 0)
+            FROM vinhos.compra_carrinho_vinho
+            WHERE numero_compra = NEW.numero_compra
+        )
+        WHERE numero = NEW.numero_compra;
+
+    -- Caso seja uma exclusão
+    ELSIF (TG_OP = 'DELETE') THEN
+        UPDATE vinhos.compras
+        SET valor_total = (
+            SELECT COALESCE(SUM(subtotal), 0)
+            FROM vinhos.compra_carrinho_vinho
+            WHERE numero_compra = OLD.numero_compra
+        )
+        WHERE numero = OLD.numero_compra;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger que chama a função
+DROP TRIGGER IF EXISTS tg_atualizar_valor_total ON vinhos.compra_carrinho_vinho;
+
+CREATE TRIGGER tg_atualizar_valor_total
+AFTER INSERT OR UPDATE OR DELETE
+ON vinhos.compra_carrinho_vinho
+FOR EACH ROW
+EXECUTE FUNCTION atualizar_valor_total_compra();
