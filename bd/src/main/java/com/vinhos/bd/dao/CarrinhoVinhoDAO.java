@@ -15,4 +15,11 @@ public interface CarrinhoVinhoDAO extends DAO<CarrinhoVinho, CarrinhoVinhoID> {
      * @throws SQLException
      */
     public List<CarrinhoVinho> findAllVinhosOfCarrinho (int numero_carrinho) throws SQLException;
+
+    /**
+     * Remove todos os itens de um carrinho.
+     * @param numero_carrinho Identificador do carrinho.
+     * @throws SQLException
+     */
+    public void esvaziaCarrinho (int numero_carrinho) throws SQLException;
 }

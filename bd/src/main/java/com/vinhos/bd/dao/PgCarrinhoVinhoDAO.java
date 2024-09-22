@@ -17,6 +17,10 @@ public class PgCarrinhoVinhoDAO implements CarrinhoVinhoDAO {
             "SELECT * FROM vinhos.carrinho_vinho " +
                     "WHERE numero_carrinho = ?;";
 
+    private static final String ESVAZIA_CARRINHO_QUERY =
+            "DELETE FROM vinhos.carrinho_vinho " +
+                    "WHERE numero_carrinho = ?;";
+
     private static final String CREATE_QUERY =
             "INSERT INTO vinhos.carrinho_vinho(numero_carrinho, " +
                     "numero_vinho, quantidade) " +
@@ -70,6 +74,25 @@ public class PgCarrinhoVinhoDAO implements CarrinhoVinhoDAO {
             throw new SQLException("Erro ao listar itens do carrinho.");
         }
         return carrinhoVinhoList;
+    }
+
+    @Override
+    public void esvaziaCarrinho (int numero_carrinho) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(ESVAZIA_CARRINHO_QUERY)) {
+            statement.setInt(1, numero_carrinho);
+
+            if (statement.executeUpdate() < 1) {
+                throw new SQLException("Erro ao excluir: Carrinho não encontrado.");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgMyAppUserDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+
+            if (ex.getMessage().equals("Erro ao excluir: Carrinho não encontrado.")) {
+                throw ex;
+            } else {
+                throw new SQLException("Erro ao esvaziar carrinho.");
+            }
+        }
     }
 
     @Override

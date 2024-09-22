@@ -89,6 +89,20 @@ public class CarrinhoVinhoController {
         return carrinhoVinhoList;
     }
 
+    @PostMapping(value = "/esvazia")
+    public void esvaziaCarrinho(@RequestBody CarrinhoVinho carrinhoVinho, HttpServletResponse response) throws ServletException, IOException {
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            carrinhoVinhoDAO = daoFactory.getCarrinhoVinhoDAO();
+
+            carrinhoVinhoDAO.esvaziaCarrinho(carrinhoVinho.getId().getNumeroCarrinho());
+            response.setStatus(HttpServletResponse.SC_OK);  // 200 OK
+            response.getWriter().write("Carrinho esvaziado com sucesso.");
+        } catch (SQLException | ClassNotFoundException  | IOException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal server error
+            response.getWriter().write("Erro: " + ex.getMessage());
+        }
+    }
+
     @PostMapping(value = "/create")
     public void createCarrinhoVinho(@RequestBody CarrinhoVinho carrinhoVinho, HttpServletResponse response)  throws ServletException, IOException {
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {

@@ -24,4 +24,8 @@ public class PgDAOFactory extends DAOFactory{
     public CarrinhoVinhoDAO getCarrinhoVinhoDAO() {
         return new PgCarrinhoVinhoDAO(this.connection);
     }
+
+    public CompraCarrinhoVinhoDAO getCompraCarrinhoVinhoDAO () {
+        return new PgCompraCarrinhoVinhoDAO(this.connection);
+    }
 }
