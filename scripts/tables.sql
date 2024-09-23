@@ -287,3 +287,54 @@ AFTER INSERT OR UPDATE OR DELETE
 ON vinhos.compra_carrinho_vinho
 FOR EACH ROW
 EXECUTE FUNCTION atualizar_valor_total_compra();
+
+DROP TABLE vinhos.compra_carrinho_vinho;
+
+CREATE TABLE vinhos.compra_carrinho_vinho (
+    numero_compra INT,
+    numero_carrinho INT,
+    numero_vinho INT,
+    quantidade INT DEFAULT 0,
+    subtotal DECIMAL(10, 2) DEFAULT 0,
+    CONSTRAINT ck_subtotal CHECK (subtotal >= 0),
+    CONSTRAINT fk_numero_compra FOREIGN KEY (numero_compra)
+        REFERENCES vinhos.compras(numero) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT pk_compra_carrinho_produto PRIMARY KEY (numero_compra, numero_carrinho, numero_vinho)
+);
+
+CREATE OR REPLACE FUNCTION atualizar_valor_total_compra()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Caso seja uma inserção ou atualização
+    IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+        UPDATE vinhos.compras
+        SET valor_total = (
+            SELECT COALESCE(SUM(subtotal), 0)
+            FROM vinhos.compra_carrinho_vinho
+            WHERE numero_compra = NEW.numero_compra
+        )
+        WHERE numero = NEW.numero_compra;
+
+    -- Caso seja uma exclusão
+    ELSIF (TG_OP = 'DELETE') THEN
+        UPDATE vinhos.compras
+        SET valor_total = (
+            SELECT COALESCE(SUM(subtotal), 0)
+            FROM vinhos.compra_carrinho_vinho
+            WHERE numero_compra = OLD.numero_compra
+        )
+        WHERE numero = OLD.numero_compra;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger que chama a função
+DROP TRIGGER IF EXISTS tg_atualizar_valor_total ON vinhos.compra_carrinho_vinho;
+
+CREATE TRIGGER tg_atualizar_valor_total
+AFTER INSERT OR UPDATE OR DELETE
+ON vinhos.compra_carrinho_vinho
+FOR EACH ROW
+EXECUTE FUNCTION atualizar_valor_total_compra();
