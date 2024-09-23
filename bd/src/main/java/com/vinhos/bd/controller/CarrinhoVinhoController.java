@@ -6,7 +6,9 @@ import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.model.CarrinhoVinho;
 import com.vinhos.bd.model.CarrinhoVinhoID;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -104,7 +106,15 @@ public class CarrinhoVinhoController {
     }
 
     @PostMapping(value = "/create")
-    public void createCarrinhoVinho(@RequestBody CarrinhoVinho carrinhoVinho, HttpServletResponse response)  throws ServletException, IOException {
+    public void createCarrinhoVinho(@RequestBody CarrinhoVinho carrinhoVinho, HttpServletResponse response, HttpServletRequest request)  throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Usuário não logado!");
+            return;
+        }
+
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getCarrinhoVinhoDAO();
 

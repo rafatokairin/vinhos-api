@@ -5,7 +5,9 @@ import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.model.*;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +29,15 @@ public class AcaoCompraController {
     DAO<Carrinho, Integer> daoCarrinho;
 
     @PostMapping(value = "/comprar")
-    public void realizarCompra (@RequestBody Carrinho carrinho, HttpServletResponse response) throws ServletException, IOException {
+    public void realizarCompra (@RequestBody Carrinho carrinho, HttpServletResponse response, HttpServletRequest request) throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Usuário não logado!");
+            return;
+        }
 
         List<CarrinhoVinho> carrinhoVinhoList;
 
