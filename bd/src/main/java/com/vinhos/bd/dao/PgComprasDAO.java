@@ -58,6 +58,7 @@ public class PgComprasDAO implements ComprasDAO {
                     compra = new Compras();
                     compra.setNumero(resultSet.getInt("numero"));
                     compra.setValor_total(resultSet.getDouble("valor_total"));
+                    compra.setDataRegistro(resultSet.getDate("data_registro"));
                 }
             }
         } catch (SQLException ex) {
@@ -107,6 +108,7 @@ public class PgComprasDAO implements ComprasDAO {
                     Compras compra = new Compras();
                     compra.setNumero(resultSet.getInt("numero"));
                     compra.setValor_total(resultSet.getDouble("valor_total"));
+                    compra.setDataRegistro(resultSet.getDate("data_registro"));
                     comprasList.add(compra);
                 }
             }

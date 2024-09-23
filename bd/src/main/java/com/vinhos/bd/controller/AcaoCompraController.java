@@ -25,8 +25,8 @@ public class AcaoCompraController {
     CarrinhoVinhoDAO carrinhoVinhoDAO;
     DAO<CompraCarrinhoVinho, CompraCarrinhoVinhoID> daoCompraCarrinhoVinho;
     DAO<Compras, Integer> daoCompras;
-
     DAO<Carrinho, Integer> daoCarrinho;
+    DAO<Vinho, Integer> daoVinho;
 
     @PostMapping(value = "/comprar")
     public void realizarCompra (@RequestBody Carrinho carrinho, HttpServletResponse response, HttpServletRequest request) throws ServletException, IOException {
@@ -46,6 +46,7 @@ public class AcaoCompraController {
             daoCompraCarrinhoVinho = daoFactory.getCompraCarrinhoVinhoDAO();
             daoCompras = daoFactory.getComprasDAO();
             daoCarrinho = daoFactory.getCarrinhoDAO();
+            daoVinho = daoFactory.getVinhoDAO();
 
             carrinhoVinhoList = carrinhoVinhoDAO.findAllVinhosOfCarrinho(carrinho.getNumero());
 
@@ -69,6 +70,10 @@ public class AcaoCompraController {
                     compraCarrinhoVinho.setQuantidade(item.getQuantidade());
                     compraCarrinhoVinho.setSubtotal(item.getSubtotal());
                     daoCompraCarrinhoVinho.create(compraCarrinhoVinho);
+
+                    Vinho vinho = daoVinho.read(item.getId().getNumeroVinho());
+                    vinho.setQuantidadeEstoque(vinho.getQuantidadeEstoque() - item.getQuantidade());
+                    daoVinho.update(vinho);
                 }
 
                 daoCarrinho.delete(carrinho.getNumero());

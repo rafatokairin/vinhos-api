@@ -5,6 +5,7 @@ import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.model.CarrinhoVinho;
 import com.vinhos.bd.model.CarrinhoVinhoID;
+import com.vinhos.bd.model.Vinho;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,6 +21,7 @@ import java.util.List;
 public class CarrinhoVinhoController {
 
     DAO<CarrinhoVinho, CarrinhoVinhoID> dao;
+    DAO<Vinho, Integer> daoVinho;
     CarrinhoVinhoDAO carrinhoVinhoDAO;
 
     @GetMapping(value = "/search")
@@ -116,6 +118,14 @@ public class CarrinhoVinhoController {
         }
 
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            daoVinho = daoFactory.getVinhoDAO();
+            Vinho vinho = daoVinho.read(carrinhoVinho.getId().getNumeroVinho());
+            if (carrinhoVinho.getQuantidade() > vinho.getQuantidadeEstoque()) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);   // 500 Internal server error
+                response.getWriter().write("Quantidade no estoque, insuficiente!");
+                return;
+            }
+
             dao = daoFactory.getCarrinhoVinhoDAO();
 
             dao.create(carrinhoVinho);
