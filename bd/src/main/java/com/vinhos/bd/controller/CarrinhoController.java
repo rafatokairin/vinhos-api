@@ -88,7 +88,14 @@ public class CarrinhoController {
     }
 
     @PostMapping(value = "/update")
-    public void updateCarrinho(@RequestBody Carrinho carrinho, HttpServletResponse response) throws ServletException, IOException {
+    public void updateCarrinho(@RequestBody Carrinho carrinho, HttpServletResponse response, HttpServletRequest request) throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Usuário não logado!");
+            return;
+        }
+
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getCarrinhoDAO();
 
@@ -102,7 +109,14 @@ public class CarrinhoController {
     }
 
     @PostMapping(value = "/delete")
-    public void deleteCarrinho(@RequestBody Carrinho carrinho, HttpServletResponse response) throws ServletException, IOException {
+    public void deleteCarrinho(@RequestBody Carrinho carrinho, HttpServletResponse response, HttpServletRequest request) throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Usuário não logado!");
+            return;
+        }
+
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getCarrinhoDAO();
 
