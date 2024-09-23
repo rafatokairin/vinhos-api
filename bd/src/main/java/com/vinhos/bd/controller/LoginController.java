@@ -3,7 +3,6 @@ package com.vinhos.bd.controller;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.dao.MyAppUserDAO;
 import com.vinhos.bd.model.MyAppUser;
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

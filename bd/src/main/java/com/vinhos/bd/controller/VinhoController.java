@@ -3,7 +3,6 @@ package com.vinhos.bd.controller;
 import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.dao.VinhoDAO;
-import com.vinhos.bd.model.MyAppUser;
 import com.vinhos.bd.model.Vinho;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;

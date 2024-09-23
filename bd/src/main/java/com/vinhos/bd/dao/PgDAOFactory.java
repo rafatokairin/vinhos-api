@@ -1,6 +1,5 @@
 package com.vinhos.bd.dao;
 
-import java.awt.font.TextHitInfo;
 import java.sql.Connection;
 
 public class PgDAOFactory extends DAOFactory{
