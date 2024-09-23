@@ -16,8 +16,8 @@ public class PgComprasDAO implements ComprasDAO {
     private final Connection connection;
 
     private static final String CREATE_QUERY =
-            "INSERT INTO vinhos.compras(numero, valor_total) " +
-                    "VALUES(?, ?);";
+            "INSERT INTO vinhos.compras(numero) " +
+                    "VALUES(?);";
 
     private static final String READ_QUERY =
             "SELECT * FROM vinhos.compras WHERE numero = ?;";
@@ -39,7 +39,6 @@ public class PgComprasDAO implements ComprasDAO {
     public void create(Compras compras) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(CREATE_QUERY)) {
             statement.setInt(1, compras.getNumero()); // Definindo o número da compra
-            statement.setDouble(2, compras.getValor_total()); // Definindo o valor total
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
