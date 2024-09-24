@@ -107,6 +107,7 @@ CREATE TABLE vinhos.carrinho_produto (
 CREATE TABLE vinhos.compras (
     numero INT,
     valor_total DECIMAL(10, 2) DEFAULT 0,
+    data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT ck_valor_total CHECK (valor_total >= 0),
     CONSTRAINT pk_compra PRIMARY KEY (numero)
 );
