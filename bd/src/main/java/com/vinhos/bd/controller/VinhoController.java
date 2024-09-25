@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import com.google.gson.Gson;
 
 @RestController
 @RequestMapping(value = "/vinho")
@@ -62,11 +63,12 @@ public class VinhoController {
         return vinhoAux;
     }
 
-    @GetMapping(value = "/search")
-    public List<Vinho> getVinhosComposto(@RequestBody Vinho vinho, HttpServletResponse response)
-        throws ServletException, IOException {
+    @PostMapping(value = "/search")
+    public String getVinhosComposto(@RequestBody Vinho vinho, HttpServletResponse response)
+            throws ServletException, IOException {
 
         List<Vinho> listaVinhos;
+        Gson gson = new Gson();
 
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             vinhoDAO = daoFactory.getVinhoDAO();
@@ -83,8 +85,7 @@ public class VinhoController {
             response.getWriter().write("Erro: " + ex.getMessage());
             return null;
         }
-
-        return  listaVinhos;
+        return gson.toJson(listaVinhos);
     }
 
     @PostMapping(value = "/create")

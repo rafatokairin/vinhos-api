@@ -136,9 +136,6 @@ public class PgVinhoDAO implements VinhoDAO {
             statement.setString(10, vinho.getCategoria());
             statement.setString(11, vinho.getEstilo());
 
-            System.out.println(vinho.getQuantidadeEstoque());
-            System.out.println(vinho.getImgPath());
-
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(PgVinhoDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
