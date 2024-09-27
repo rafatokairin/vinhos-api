@@ -4,14 +4,15 @@ import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.dao.VinhoDAO;
 import com.vinhos.bd.model.Vinho;
+import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
-import com.google.gson.Gson;
 
 @RestController
 @RequestMapping(value = "/vinho")
@@ -89,7 +90,7 @@ public class VinhoController {
     }
 
     @PostMapping(value = "/create")
-    public void createVinho(@RequestBody Vinho vinho, HttpServletResponse response) throws ServletException, IOException{
+    public void createVinho(@RequestBody Vinho vinho, HttpServletResponse response) throws ServletException, IOException {
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getVinhoDAO();
 
@@ -126,5 +127,27 @@ public class VinhoController {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
             response.getWriter().write("Erro: " + ex.getMessage());
         }
+    }
+
+    @GetMapping(value = "/maisVendidos")
+    public String getMostSoldWines(@RequestParam int quantidade, HttpServletResponse response) throws ServletException, IOException {
+        List<Vinho> mostSoldWines = new ArrayList<>();
+        Gson gson = new Gson();
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            vinhoDAO = daoFactory.getVinhoDAO();
+            mostSoldWines = vinhoDAO.findMostSoldWines(quantidade); // quantidade do HTML
+
+            if (mostSoldWines.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Nenhum vinho encontrado.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException | IOException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+        return gson.toJson(mostSoldWines);
     }
 }

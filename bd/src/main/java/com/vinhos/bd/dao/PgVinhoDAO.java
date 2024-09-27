@@ -58,8 +58,58 @@ public class PgVinhoDAO implements VinhoDAO {
             "DELETE FROM vinhos.vinhos " +
                     "WHERE numero = ?;";
 
+    private static final String MOST_SOLD_WINES_QUERY =
+            "SELECT numero_vinho, SUM(quantidade) AS total_vendido " +
+                    "FROM vinhos.compra_carrinho_vinho " +
+                    "GROUP BY numero_vinho " +
+                    "ORDER BY total_vendido DESC " +
+                    "LIMIT ?;";
+
     public PgVinhoDAO(Connection connection) {
         this.connection = connection;
+    }
+
+    @Override
+    public List<Vinho> findMostSoldWines(int quantidade) throws SQLException {
+        List<Vinho> mostSoldWines = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(MOST_SOLD_WINES_QUERY)) {
+            // atribui quantidade em LIMIT (quantidade JSON que retornará)
+            statement.setInt(1, quantidade);
+            ResultSet result = statement.executeQuery();
+
+            while (result.next()) {
+                // atribui total_vendido ao JSON
+                int totalVendido = result.getInt("total_vendido");
+                Vinho vinhoResult = new Vinho();
+                vinhoResult.setTotalVendido(totalVendido);
+                // busca info vinho com base no número de compraCarrinhoVinho
+                int numeroVinho = result.getInt("numero_vinho");
+                try (PreparedStatement numeroVinhoResult = connection.prepareStatement(READ_QUERY)) {
+                    numeroVinhoResult.setInt(1, numeroVinho);
+                    ResultSet resultSet = numeroVinhoResult.executeQuery();
+                    if (resultSet.next()) {
+                        vinhoResult.setNumero(resultSet.getInt("numero"));
+                        vinhoResult.setNome(resultSet.getString("nome"));
+                        vinhoResult.setAno(resultSet.getInt("ano"));
+                        vinhoResult.setDescricao(resultSet.getString("descricao"));
+                        vinhoResult.setUva(resultSet.getString("uva"));
+                        vinhoResult.setVinicula(resultSet.getString("vinicula"));
+                        vinhoResult.setRegiao(resultSet.getString("regiao"));
+                        vinhoResult.setCategoria(resultSet.getString("categoria"));
+                        vinhoResult.setEstilo(resultSet.getString("estilo"));
+                        vinhoResult.setPreco(resultSet.getDouble("preco"));
+                        vinhoResult.setQuantidadeEstoque(resultSet.getInt("quantidade_estoque"));
+                        vinhoResult.setImgPath(resultSet.getString("img_path"));
+                        mostSoldWines.add(vinhoResult);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgVinhoDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao buscar vinhos mais vendidos.", ex);
+        }
+        return mostSoldWines;
     }
 
     @Override
@@ -71,25 +121,18 @@ public class PgVinhoDAO implements VinhoDAO {
             // Configura os parâmetros da query
             statement.setString(1, vinho.getNome());
             statement.setString(2, vinho.getNome());
-
             statement.setInt(3, vinho.getAno());
             statement.setInt(4, vinho.getAno());
-
             statement.setString(5, vinho.getUva());
             statement.setString(6, vinho.getUva());
-
             statement.setString(7, vinho.getVinicula());
             statement.setString(8, vinho.getVinicula());
-
             statement.setString(9, vinho.getRegiao());
             statement.setString(10, vinho.getRegiao());
-
             statement.setString(11, vinho.getCategoria());
             statement.setString(12, vinho.getCategoria());
-
             statement.setString(13, vinho.getEstilo());
             statement.setString(14, vinho.getEstilo());
-
             statement.setDouble(15, vinho.getPreco());
             statement.setDouble(16, vinho.getPreco());
 

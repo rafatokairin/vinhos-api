@@ -15,4 +15,5 @@ public interface VinhoDAO extends DAO<Vinho, Integer>{
      * @throws SQLException
      */
     public List<Vinho> findVinhos (Vinho vinho) throws SQLException;
+    public List<Vinho> findMostSoldWines(int quantidade) throws SQLException;
 }

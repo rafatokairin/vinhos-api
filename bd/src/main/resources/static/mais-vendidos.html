@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mais Vendidos</title>
+    <script>
+        async function buscarMaisVendidos(event) {
+            event.preventDefault();
+
+            // pega dados do form
+            const quantidade = document.getElementById('quantidade').value || 0;
+            try {
+                // retorna o request JSON
+                const response = await fetch(`/vinho/maisVendidos?quantidade=${quantidade}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro: ${response.statusText}`);
+                }
+
+                const jsonResponse = await response.json();
+                const formattedResponse = jsonResponse.map(vinho => {
+                    const vinhoInfo = JSON.stringify(vinho, null, 2);
+                    return `${vinhoInfo}\n`;
+                }).join('\n');
+
+                document.getElementById('resultado').textContent = formattedResponse;
+            } catch (error) {
+                console.error('Erro ao buscar vinhos:', error);
+                document.getElementById('resultado').textContent = 'Erro ao buscar vinhos: ' + error.message;
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>Mais Vendidos</h1>
+<form onsubmit="buscarMaisVendidos(event)">
+    <label for="quantidade">Quantidade:</label>
+    <input type="number" id="quantidade" name="quantidade" required><br>
+
+    <button type="submit">Buscar Mais Vendidos</button>
+</form>
+
+<h2>Resultados:</h2>
+<pre id="resultado"></pre>
+</body>
+</html>

@@ -14,6 +14,9 @@ public class Vinho {
     private String img_path;
     private String categoria;
     private String estilo;
+    private int totalVendido;
+
+    public void setTotalVendido(int totalVendido) { this.totalVendido = totalVendido; }
 
     public String getNome() {
         return nome;
