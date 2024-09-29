@@ -131,14 +131,14 @@ public class VinhoController {
 
     @GetMapping(value = "/maisVendidos")
     public String getMostSoldWines(@RequestParam int quantidade, HttpServletResponse response) throws ServletException, IOException {
-        List<Vinho> mostSoldWines = new ArrayList<>();
+        List<Vinho> listaVinhos = new ArrayList<>();
         Gson gson = new Gson();
 
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             vinhoDAO = daoFactory.getVinhoDAO();
-            mostSoldWines = vinhoDAO.findMostSoldWines(quantidade); // quantidade do HTML
+            listaVinhos = vinhoDAO.findMostSoldWines(quantidade); // quantidade do HTML
 
-            if (mostSoldWines.isEmpty()) {
+            if (listaVinhos.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
                 response.getWriter().write("Nenhum vinho encontrado.");
                 return null;
@@ -149,6 +149,30 @@ public class VinhoController {
             return null;
         }
         response.setStatus(HttpServletResponse.SC_OK); // 200 OK
-        return gson.toJson(mostSoldWines);
+        return gson.toJson(listaVinhos);
+    }
+
+    @GetMapping(value = "/vinhosPorData")
+    public String getVinhosByData(@RequestParam String dataRegistro, HttpServletResponse response) throws ServletException, IOException {
+        List<Vinho> listaVinhos;
+        Gson gson = new Gson();
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            vinhoDAO = daoFactory.getVinhoDAO();
+            listaVinhos = vinhoDAO.findVinhosByDataVendido(dataRegistro);
+
+            if (listaVinhos.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Nenhum vinho encontrado para a data fornecida.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException | IOException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return gson.toJson(listaVinhos);
     }
 }

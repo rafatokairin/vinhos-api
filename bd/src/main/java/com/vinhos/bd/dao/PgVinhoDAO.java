@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -65,8 +66,38 @@ public class PgVinhoDAO implements VinhoDAO {
                     "ORDER BY total_vendido DESC " +
                     "LIMIT ?;";
 
+    private static final String DATA_SOLD_QUERY = "SELECT DISTINCT v.nome, v.vinicula, v.ano, v.categoria, v.estilo " +
+            "FROM vinhos.vinhos v " +
+            "JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho " +
+            "JOIN vinhos.compras cp ON ccv.numero_compra = cp.numero " +
+            "WHERE cp.data_registro::date = ?;";
+
     public PgVinhoDAO(Connection connection) {
         this.connection = connection;
+    }
+
+    @Override
+    public List<Vinho> findVinhosByDataVendido(String dataRegistro) throws SQLException {
+        List<Vinho> vinhosList = new ArrayList<>();
+        LocalDate data = LocalDate.parse(dataRegistro);
+        try (PreparedStatement statement = connection.prepareStatement(DATA_SOLD_QUERY)) {
+            statement.setDate(1, java.sql.Date.valueOf(data));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Vinho vinho = new Vinho();
+                    vinho.setNome(resultSet.getString("nome"));
+                    vinho.setVinicula(resultSet.getString("vinicula"));
+                    vinho.setAno(resultSet.getInt("ano"));
+                    vinho.setCategoria(resultSet.getString("categoria"));
+                    vinho.setEstilo(resultSet.getString("estilo"));
+                    vinhosList.add(vinho);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgVinhoDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao buscar vinhos por data de registro.", ex);
+        }
+        return vinhosList;
     }
 
     @Override

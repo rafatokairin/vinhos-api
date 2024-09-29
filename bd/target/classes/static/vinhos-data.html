@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Vendas por Data</title>
+    <script>
+        function buscarVinhosPorData() {
+            const dataRegistro = document.getElementById("dataRegistro").value;
+            fetch(`/vinho/vinhosPorData?dataRegistro=${dataRegistro}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar vinhos: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const vinhosInvertidos = data.reverse();
+                    const resultadoSemCampos = JSON.stringify(vinhosInvertidos, (key, value) => {
+                        if (key === 'numero' || key === 'preco' || key === 'quantidade_estoque' || key === 'totalVendido') {
+                            return undefined;
+                        }
+                        return value;
+                    }, 2);
+
+                    document.getElementById("resultado").innerText = resultadoSemCampos;
+                })
+                .catch(error => {
+                    document.getElementById("resultado").innerText = error.message;
+                });
+        }
+    </script>
+</head>
+<body>
+    <h1>Quais Vinhos Foram Vendidos na Data?</h1>
+<label for="dataRegistro">Data:</label>
+<input type="date" id="dataRegistro" required>
+<button onclick="buscarVinhosPorData()">Buscar Vinhos</button>
+
+<h2>Resultado:</h2>
+<pre id="resultado"></pre>
+</body>
+</html>
