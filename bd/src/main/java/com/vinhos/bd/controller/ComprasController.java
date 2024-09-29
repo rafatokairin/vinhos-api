@@ -1,12 +1,13 @@
 package com.vinhos.bd.controller;
 
+import com.google.gson.Gson;
 import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.model.Compras;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
-
+import com.vinhos.bd.dao.ComprasDAO;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -14,9 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value="/compras")
 public class ComprasController {
-
-    DAO<Compras, Integer> dao;
-
+    ComprasDAO dao;
     @PostMapping(value = "/create")
     public void createCompra(@RequestBody Compras compra, HttpServletResponse response) throws ServletException, IOException {
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
@@ -103,5 +102,27 @@ public class ComprasController {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
             response.getWriter().write("Erro ao deletar compra: " + ex.getMessage());
         }
+    }
+
+    @GetMapping(value = "/por-dias")
+    public String getComprasPorDias(@RequestParam int dias, HttpServletResponse response) throws ServletException, IOException {
+        List<Compras> listaCompras;
+        Gson gson = new Gson();
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            dao = daoFactory.getComprasDAO();
+            listaCompras = dao.getComprasPorDias(dias);
+
+            if (listaCompras.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return gson.toJson(listaCompras);
     }
 }

@@ -148,6 +148,7 @@ public class VinhoController {
             response.getWriter().write("Erro: " + ex.getMessage());
             return null;
         }
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
         return gson.toJson(mostSoldWines);
     }
 }

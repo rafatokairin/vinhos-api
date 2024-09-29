@@ -79,7 +79,6 @@ public abstract class DAOFactory implements AutoCloseable {
     public abstract CarrinhoDAO getCarrinhoDAO();
     public abstract ComprasDAO getComprasDAO();
     public abstract CarrinhoVinhoDAO getCarrinhoVinhoDAO();
-
     public abstract CompraCarrinhoVinhoDAO getCompraCarrinhoVinhoDAO();
 
     @Override

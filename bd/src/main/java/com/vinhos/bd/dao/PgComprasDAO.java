@@ -31,8 +31,35 @@ public class PgComprasDAO implements ComprasDAO {
     private static final String ALL_QUERY =
             "SELECT * FROM vinhos.compras ORDER BY numero;";
 
+    private static final String INTERVAL_QUERY =
+            "SELECT DATE(c.data_registro) AS data, SUM(c.valor_total) AS valor_total_por_dia " +
+                    "FROM vinhos.compras c " +
+                    "WHERE c.data_registro >= NOW() - INTERVAL '%s DAYS' " +
+                    "GROUP BY DATE(c.data_registro) " +
+                    "ORDER BY data ASC;";
+
     public PgComprasDAO(Connection connection) {
         this.connection = connection;
+    }
+
+    @Override
+    public List<Compras> getComprasPorDias(int dias) throws SQLException {
+        List<Compras> comprasList = new ArrayList<>();
+        String intervalQuery = String.format(INTERVAL_QUERY, dias);
+        try (PreparedStatement statement = connection.prepareStatement(intervalQuery)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Compras compra = new Compras();
+                    compra.setValor_total(resultSet.getDouble("valor_total_por_dia"));
+                    compra.setDataRegistro(resultSet.getDate("data"));
+                    comprasList.add(compra);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por dias.", ex);
+        }
+        return comprasList;
     }
 
     @Override
@@ -65,7 +92,6 @@ public class PgComprasDAO implements ComprasDAO {
             Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
             throw new SQLException("Erro ao buscar compra.");
         }
-
         return compra;
     }
 
@@ -116,7 +142,6 @@ public class PgComprasDAO implements ComprasDAO {
             Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
             throw new SQLException("Erro ao listar todas as compras.");
         }
-
         return comprasList;
     }
 }
