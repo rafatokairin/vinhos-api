@@ -3,6 +3,7 @@ package com.vinhos.bd.controller;
 import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.dao.VinhoDAO;
+import com.vinhos.bd.dto.VinhosMaisVendidosDTO;
 import com.vinhos.bd.model.Vinho;
 import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -129,18 +131,17 @@ public class VinhoController {
         }
     }
 
-    @GetMapping(value = "/maisVendidos")
-    public String getMostSoldWines(@RequestParam int quantidade, HttpServletResponse response) throws ServletException, IOException {
-        List<Vinho> listaVinhos = new ArrayList<>();
-        Gson gson = new Gson();
+    @GetMapping(value = "/vinhosPorPeriodo")
+    public List<VinhosMaisVendidosDTO> getVinhosByPeriodo(@RequestParam String period, HttpServletResponse response) throws ServletException, IOException {
+        List<VinhosMaisVendidosDTO> vinhosMaisVendidosDTOList;
 
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             vinhoDAO = daoFactory.getVinhoDAO();
-            listaVinhos = vinhoDAO.findMostSoldWines(quantidade); // quantidade do HTML
+            vinhosMaisVendidosDTOList = vinhoDAO.fetchMostSoldWinesRecent(period);
 
-            if (listaVinhos.isEmpty()) {
+            if (vinhosMaisVendidosDTOList.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
-                response.getWriter().write("Nenhum vinho encontrado.");
+                response.getWriter().write("Nenhum vinho encontrado para o período fornecido.");
                 return null;
             }
         } catch (SQLException | ClassNotFoundException | IOException ex) {
@@ -148,22 +149,22 @@ public class VinhoController {
             response.getWriter().write("Erro: " + ex.getMessage());
             return null;
         }
+
         response.setStatus(HttpServletResponse.SC_OK); // 200 OK
-        return gson.toJson(listaVinhos);
+        return  vinhosMaisVendidosDTOList;
     }
 
     @GetMapping(value = "/vinhosPorData")
-    public String getVinhosByData(@RequestParam String dataRegistro, HttpServletResponse response) throws ServletException, IOException {
-        List<Vinho> listaVinhos;
-        Gson gson = new Gson();
+    public List<VinhosMaisVendidosDTO> getVinhosByData(@RequestParam Date data1, @RequestParam Date data2, HttpServletResponse response) throws ServletException, IOException {
+        List<VinhosMaisVendidosDTO> vinhosMaisVendidosDTOList;
 
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             vinhoDAO = daoFactory.getVinhoDAO();
-            listaVinhos = vinhoDAO.findVinhosByDataVendido(dataRegistro);
+            vinhosMaisVendidosDTOList = vinhoDAO.findVinhosByDataVendido(data1, data2);
 
-            if (listaVinhos.isEmpty()) {
+            if (vinhosMaisVendidosDTOList.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
-                response.getWriter().write("Nenhum vinho encontrado para a data fornecida.");
+                response.getWriter().write("Nenhum vinho encontrado para o período fornecido.");
                 return null;
             }
         } catch (SQLException | ClassNotFoundException | IOException ex) {
@@ -173,6 +174,6 @@ public class VinhoController {
         }
 
         response.setStatus(HttpServletResponse.SC_OK); // 200 OK
-        return gson.toJson(listaVinhos);
+        return  vinhosMaisVendidosDTOList;
     }
 }

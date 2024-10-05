@@ -1,13 +1,14 @@
 package com.vinhos.bd.dao;
 
+import com.vinhos.bd.dto.VinhosMaisVendidosDTO;
 import com.vinhos.bd.model.Vinho;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.sql.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,88 +60,82 @@ public class PgVinhoDAO implements VinhoDAO {
             "DELETE FROM vinhos.vinhos " +
                     "WHERE numero = ?;";
 
-    private static final String MOST_SOLD_WINES_QUERY =
-            "SELECT numero_vinho, SUM(quantidade) AS total_vendido " +
-                    "FROM vinhos.compra_carrinho_vinho " +
-                    "GROUP BY numero_vinho " +
-                    "ORDER BY total_vendido DESC " +
-                    "LIMIT ?;";
+    private static final String FETCH_MOST_SOLD_WINES_RECENT =
+            "SELECT nome, quantidade_vendida " +
+                    "FROM vinhos.vinhos v " +
+                    "JOIN ( " +
+                    "    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro " +
+                    "    FROM vinhos.compra_carrinho_vinho ccv " +
+                    "    JOIN vinhos.compras c ON ccv.numero_compra = c.numero " +
+                    "    GROUP BY numero_vinho, data_registro " +
+                    ") AS r ON v.numero = r.numero " +
+                    "WHERE r.data_registro >= CURRENT_DATE - INTERVAL '?' " +
+                    "ORDER BY quantidade_vendida DESC;";
 
-    private static final String DATA_SOLD_QUERY = "SELECT DISTINCT v.nome, v.vinicula, v.ano, v.categoria, v.estilo " +
-            "FROM vinhos.vinhos v " +
-            "JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho " +
-            "JOIN vinhos.compras cp ON ccv.numero_compra = cp.numero " +
-            "WHERE cp.data_registro::date = ?;";
+    private static final String RETRIEVE_TOP_SELLING_WINES_BY_DATE_RANGE =
+            "SELECT nome, quantidade_vendida\n" +
+                    "FROM vinhos.vinhos v\n" +
+                    "JOIN (\n" +
+                    "    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro\n" +
+                    "    FROM vinhos.compra_carrinho_vinho ccv\n" +
+                    "    JOIN vinhos.compras c\n" +
+                    "    ON ccv.numero_compra = c.numero\n" +
+                    "    GROUP BY numero_vinho, data_registro\n" +
+                    ") AS r\n" +
+                    "ON v.numero = r.numero AND r.data_registro BETWEEN ? AND ?\n" +
+                    "ORDER BY quantidade_vendida DESC;";
 
     public PgVinhoDAO(Connection connection) {
         this.connection = connection;
     }
 
     @Override
-    public List<Vinho> findVinhosByDataVendido(String dataRegistro) throws SQLException {
-        List<Vinho> vinhosList = new ArrayList<>();
-        LocalDate data = LocalDate.parse(dataRegistro);
-        try (PreparedStatement statement = connection.prepareStatement(DATA_SOLD_QUERY)) {
-            statement.setDate(1, java.sql.Date.valueOf(data));
+    public List<VinhosMaisVendidosDTO> fetchMostSoldWinesRecent(String period) throws SQLException {
+        List<VinhosMaisVendidosDTO> vinhosMaisVendidosDTOList = new ArrayList<>();
+
+        String query = FETCH_MOST_SOLD_WINES_RECENT.replace("?", period); // Substitui '?' pela entrada
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    Vinho vinho = new Vinho();
-                    vinho.setNome(resultSet.getString("nome"));
-                    vinho.setVinicula(resultSet.getString("vinicula"));
-                    vinho.setAno(resultSet.getInt("ano"));
-                    vinho.setCategoria(resultSet.getString("categoria"));
-                    vinho.setEstilo(resultSet.getString("estilo"));
-                    vinhosList.add(vinho);
+                    VinhosMaisVendidosDTO vinhosMaisVendidosDTO = new VinhosMaisVendidosDTO();
+                    vinhosMaisVendidosDTO.setNome(resultSet.getString("nome"));
+                    vinhosMaisVendidosDTO.setQuantidadeVendida(resultSet.getInt("quantidade_vendida"));
+                    vinhosMaisVendidosDTOList.add(vinhosMaisVendidosDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgVinhoDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao buscar vinhos por periodo de tempo.", ex);
+        }
+
+        return vinhosMaisVendidosDTOList;
+    }
+
+
+    @Override
+    public List<VinhosMaisVendidosDTO> findVinhosByDataVendido(Date data_ini, Date data_fim) throws SQLException {
+        List<VinhosMaisVendidosDTO> vinhosMaisVendidosDTOList = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(RETRIEVE_TOP_SELLING_WINES_BY_DATE_RANGE)) {
+            statement.setDate(1, data_ini);
+            statement.setDate(2, data_fim);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    VinhosMaisVendidosDTO vinhosMaisVendidosDTO = new VinhosMaisVendidosDTO();
+                    vinhosMaisVendidosDTO.setNome(resultSet.getString("nome"));
+                    vinhosMaisVendidosDTO.setQuantidadeVendida(resultSet.getInt("quantidade_vendida"));
+
+                    vinhosMaisVendidosDTOList.add(vinhosMaisVendidosDTO);
                 }
             }
         } catch (SQLException ex) {
             Logger.getLogger(PgVinhoDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
             throw new SQLException("Erro ao buscar vinhos por data de registro.", ex);
         }
-        return vinhosList;
-    }
 
-    @Override
-    public List<Vinho> findMostSoldWines(int quantidade) throws SQLException {
-        List<Vinho> mostSoldWines = new ArrayList<>();
-
-        try (PreparedStatement statement = connection.prepareStatement(MOST_SOLD_WINES_QUERY)) {
-            // atribui quantidade em LIMIT (quantidade JSON que retornará)
-            statement.setInt(1, quantidade);
-            ResultSet result = statement.executeQuery();
-
-            while (result.next()) {
-                // atribui total_vendido ao JSON
-                int totalVendido = result.getInt("total_vendido");
-                Vinho vinhoResult = new Vinho();
-                vinhoResult.setTotalVendido(totalVendido);
-                // busca info vinho com base no número de compraCarrinhoVinho
-                int numeroVinho = result.getInt("numero_vinho");
-                try (PreparedStatement numeroVinhoResult = connection.prepareStatement(READ_QUERY)) {
-                    numeroVinhoResult.setInt(1, numeroVinho);
-                    ResultSet resultSet = numeroVinhoResult.executeQuery();
-                    if (resultSet.next()) {
-                        vinhoResult.setNumero(resultSet.getInt("numero"));
-                        vinhoResult.setNome(resultSet.getString("nome"));
-                        vinhoResult.setAno(resultSet.getInt("ano"));
-                        vinhoResult.setDescricao(resultSet.getString("descricao"));
-                        vinhoResult.setUva(resultSet.getString("uva"));
-                        vinhoResult.setVinicula(resultSet.getString("vinicula"));
-                        vinhoResult.setRegiao(resultSet.getString("regiao"));
-                        vinhoResult.setCategoria(resultSet.getString("categoria"));
-                        vinhoResult.setEstilo(resultSet.getString("estilo"));
-                        vinhoResult.setPreco(resultSet.getDouble("preco"));
-                        vinhoResult.setQuantidadeEstoque(resultSet.getInt("quantidade_estoque"));
-                        vinhoResult.setImgPath(resultSet.getString("img_path"));
-                        mostSoldWines.add(vinhoResult);
-                    }
-                }
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(PgVinhoDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
-            throw new SQLException("Erro ao buscar vinhos mais vendidos.", ex);
-        }
-        return mostSoldWines;
+        return vinhosMaisVendidosDTOList;
     }
 
     @Override
