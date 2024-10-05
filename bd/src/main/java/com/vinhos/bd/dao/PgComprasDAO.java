@@ -16,8 +16,8 @@ public class PgComprasDAO implements ComprasDAO {
     private final Connection connection;
 
     private static final String CREATE_QUERY =
-            "INSERT INTO vinhos.compras(numero) " +
-                    "VALUES(?);";
+            "INSERT INTO vinhos.compras(numero, email_usuario) " +
+                    "VALUES(?, ?);";
 
     private static final String READ_QUERY =
             "SELECT * FROM vinhos.compras WHERE numero = ?;";
@@ -66,6 +66,7 @@ public class PgComprasDAO implements ComprasDAO {
     public void create(Compras compras) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(CREATE_QUERY)) {
             statement.setInt(1, compras.getNumero()); // Definindo o número da compra
+            statement.setString(2, compras.getEmail_usuario());
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
@@ -86,6 +87,7 @@ public class PgComprasDAO implements ComprasDAO {
                     compra.setNumero(resultSet.getInt("numero"));
                     compra.setValor_total(resultSet.getDouble("valor_total"));
                     compra.setDataRegistro(resultSet.getDate("data_registro"));
+                    compra.setEmail_usuario(resultSet.getString("email_usuario"));
                 }
             }
         } catch (SQLException ex) {
@@ -135,6 +137,7 @@ public class PgComprasDAO implements ComprasDAO {
                     compra.setNumero(resultSet.getInt("numero"));
                     compra.setValor_total(resultSet.getDouble("valor_total"));
                     compra.setDataRegistro(resultSet.getDate("data_registro"));
+                    compra.setEmail_usuario(resultSet.getString("email_usuario"));
                     comprasList.add(compra);
                 }
             }

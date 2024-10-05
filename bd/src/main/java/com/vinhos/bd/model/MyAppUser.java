@@ -7,6 +7,10 @@ public class MyAppUser {
     private String senha;
     private Date dataRegistro;
 
+    private String sexo;
+
+    private Date dataNascimento;
+
     public String getEmail () { return email; }
 
     public void setEmail (String email) {
@@ -35,5 +39,21 @@ public class MyAppUser {
 
     public void setDataRegistro (Date dataRegistro) {
         this.dataRegistro = dataRegistro;
+    }
+
+    public String getSexo () {
+        return sexo;
+    }
+
+    public void setSexo (String sexo) {
+        this.sexo = sexo;
+    }
+
+    public Date getDataNascimento () {
+        return dataNascimento;
+    }
+
+    public void setDataNascimento (Date dataNascimento) {
+        this.dataNascimento = dataNascimento;
     }
 }

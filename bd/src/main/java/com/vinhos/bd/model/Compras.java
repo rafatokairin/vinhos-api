@@ -7,6 +7,8 @@ public class Compras {
     private double valor_total;
     private Date dataRegistro;
 
+    private String email_usuario;
+
     public int getNumero() { return numero; }
 
     public void setNumero(int numero) { this.numero = numero; }
@@ -21,5 +23,13 @@ public class Compras {
 
     public void setDataRegistro (Date dataRegistro) {
         this.dataRegistro = dataRegistro;
+    }
+
+    public String getEmail_usuario () {
+        return email_usuario;
+    }
+
+    public void setEmail_usuario (String emailUsuario) {
+        this.email_usuario = emailUsuario;
     }
 }

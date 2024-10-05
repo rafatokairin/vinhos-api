@@ -54,11 +54,14 @@ public class AcaoCompraController {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
                 response.getWriter().write("Carrinho não encontrado.");
             } else {
+                MyAppUser myAppUser = (MyAppUser) session.getAttribute("usuario");
+
                 Random random = new Random();
                 int randomId = random.nextInt((1000000 - 1)) + 1;
 
                 Compras compras = new Compras();
                 compras.setNumero(randomId);
+                compras.setEmail_usuario(myAppUser.getEmail());
                 daoCompras.create(compras);
 
                 for (CarrinhoVinho item : carrinhoVinhoList) {

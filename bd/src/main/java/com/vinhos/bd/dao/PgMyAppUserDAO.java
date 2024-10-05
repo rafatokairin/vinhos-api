@@ -2,6 +2,7 @@ package com.vinhos.bd.dao;
 
 import com.vinhos.bd.model.MyAppUser;
 
+import javax.swing.undo.UndoableEditSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,8 +22,8 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                     "WHERE email = ? AND senha = md5(?);";
 
     private static final String CREATE_QUERY =
-            "INSERT INTO vinhos.usuarios(nome, email, senha) " +
-                    "VALUES(?, ?, md5(?));";
+            "INSERT INTO vinhos.usuarios(nome, email, senha, sexo, data_nascimento) " +
+                    "VALUES(?, ?, md5(?), ?, ?);";
 
     private static final String ALL_QUERY =
             "SELECT nome, email, data_registro " +
@@ -77,6 +78,14 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
             statement.setString(1, usuario.getNome());
             statement.setString(2, usuario.getEmail());
             statement.setString(3, usuario.getSenha());
+            statement.setString(4, usuario.getSexo());
+            // Adicionando a data de nascimento
+            if (usuario.getDataNascimento() != null) {
+                statement.setDate(5, usuario.getDataNascimento());
+            } else {
+                // Se a dataNascimento for nula, você pode definir um valor padrão ou lançar uma exceção
+                statement.setNull(5, java.sql.Types.DATE);
+            }
 
             statement.executeUpdate();
         } catch (SQLException ex) {
@@ -104,6 +113,8 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                     user.setNome(result.getString("nome"));
                     user.setEmail(result.getString("email"));
                     user.setDataRegistro(result.getDate("data_registro"));
+                    user.setSexo(result.getString("sexo"));
+                    user.setDataNascimento(result.getDate("data_nascimento"));
                 } else {
                     throw new SQLException("Erro ao visualizar: usuário não encontrado.");
                 }
@@ -190,6 +201,8 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                 user.setNome(result.getString("nome"));
                 user.setEmail(result.getString("email"));
                 user.setDataRegistro(result.getDate("data_registro"));
+                user.setSexo(result.getString("sexo"));
+                user.setDataNascimento(result.getDate("data_nascimento"));
 
                 userList.add(user);
             }
