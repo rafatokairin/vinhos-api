@@ -1,5 +1,7 @@
 package com.vinhos.bd.dao;
 
+import com.vinhos.bd.dto.ComprasPorSexoDTO;
+
 import java.sql.SQLException;
 import java.util.List;
 

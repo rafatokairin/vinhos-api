@@ -1,8 +1,11 @@
 package com.vinhos.bd.dao;
 
+import com.vinhos.bd.dto.ComprasPorSexoDTO;
 import com.vinhos.bd.model.MyAppUser;
 
+import java.sql.Date;
 import java.sql.SQLException;
+import java.util.List;
 
 public interface MyAppUserDAO extends DAO<MyAppUser, String>{
 
@@ -18,4 +21,8 @@ public interface MyAppUserDAO extends DAO<MyAppUser, String>{
      * @throws SQLException Se houver erro na execução da consulta ao banco de dados.
      */
     public void authenticate(MyAppUser usuario) throws SQLException, SecurityException;
+
+    public List<ComprasPorSexoDTO> fetchVendasPorSexoPeriodo (String periodo) throws SQLException;
+
+    public List<ComprasPorSexoDTO> fetchVendasPorSexoData (Date data1, Date data2) throws  SQLException;
 }

@@ -1,12 +1,11 @@
 package com.vinhos.bd.dao;
 
+import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
+import com.vinhos.bd.dto.ComprasPorSexoDTO;
 import com.vinhos.bd.model.MyAppUser;
 
 import javax.swing.undo.UndoableEditSupport;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -48,6 +47,41 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
     private static final String DELETE_QUERY =
             "DELETE FROM vinhos.usuarios " +
                     "WHERE email = ?;";
+
+    private static final String VENDAS_VINHOS_POR_SEXO_PERIODO =
+            "SELECT sexo, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
+                    "FROM vinhos.usuarios u\n" +
+                    "JOIN (\n" +
+                    "\tSELECT quantidade_vendida, valor_total, email_usuario, data_registro\n" +
+                    "\tFROM vinhos.compras c\n" +
+                    "\tJOIN (\n" +
+                    "\t\tSELECT numero_compra, SUM(quantidade) AS quantidade_vendida\n" +
+                    "\t\tFROM vinhos.compra_carrinho_vinho\n" +
+                    "\t\tGROUP BY numero_compra\n" +
+                    "\t) AS ccv\n" +
+                    "\tON c.numero = ccv.numero_compra\n" +
+                    ") compras\n" +
+                    "ON u.email = compras.email_usuario AND compras.data_registro >= CURRENT_DATE - INTERVAL '?'\n" +
+                    "GROUP BY sexo\n" +
+                    "ORDER BY valor_total DESC;\n";
+
+    private static final String VENDAS_VINHOS_POR_SEXO_DATA =
+            "SELECT sexo, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
+                    "FROM vinhos.usuarios u\n" +
+                    "JOIN (\n" +
+                    "\tSELECT quantidade_vendida, valor_total, email_usuario, data_registro\n" +
+                    "\tFROM vinhos.compras c\n" +
+                    "\tJOIN (\n" +
+                    "\t\tSELECT numero_compra, SUM(quantidade) AS quantidade_vendida\n" +
+                    "\t\tFROM vinhos.compra_carrinho_vinho\n" +
+                    "\t\tGROUP BY numero_compra\n" +
+                    "\t) AS ccv\n" +
+                    "\tON c.numero = ccv.numero_compra\n" +
+                    ") compras\n" +
+                    "ON u.email = compras.email_usuario AND compras.data_registro BETWEEN ? AND ?\n" +
+                    "GROUP BY sexo\n" +
+                    "ORDER BY valor_total DESC;";
+
     public PgMyAppUserDAO (Connection connection) {
         this.connection = connection;
     }
@@ -213,5 +247,57 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
         }
 
         return userList;
+    }
+
+    @Override
+    public List<ComprasPorSexoDTO> fetchVendasPorSexoPeriodo (String periodo) throws SQLException {
+        List<ComprasPorSexoDTO> comprasPorSexoDTOList = new ArrayList<>();
+
+        String query = VENDAS_VINHOS_POR_SEXO_PERIODO.replace("?", periodo);
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ComprasPorSexoDTO comprasPorSexoDTO = new ComprasPorSexoDTO();
+                    comprasPorSexoDTO.setSexo(resultSet.getString("sexo"));
+                    comprasPorSexoDTO.setQuantidade_vendida(resultSet.getInt("quantidade_vendida"));
+                    comprasPorSexoDTO.setValor_total(resultSet.getDouble("valor_total"));
+
+                    comprasPorSexoDTOList.add(comprasPorSexoDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+
+        return comprasPorSexoDTOList;
+    }
+
+    @Override
+    public List<ComprasPorSexoDTO> fetchVendasPorSexoData (Date data1, Date data2) throws  SQLException {
+        List<ComprasPorSexoDTO> comprasPorSexoDTOList = new ArrayList<>();
+
+
+        try (PreparedStatement statement = connection.prepareStatement(VENDAS_VINHOS_POR_SEXO_DATA)) {
+            statement.setDate(1, data1);
+            statement.setDate(2, data2);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ComprasPorSexoDTO comprasPorSexoDTO = new ComprasPorSexoDTO();
+                    comprasPorSexoDTO.setSexo(resultSet.getString("sexo"));
+                    comprasPorSexoDTO.setQuantidade_vendida(resultSet.getInt("quantidade_vendida"));
+                    comprasPorSexoDTO.setValor_total(resultSet.getDouble("valor_total"));
+
+                    comprasPorSexoDTOList.add(comprasPorSexoDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+
+        return comprasPorSexoDTOList;
     }
 }

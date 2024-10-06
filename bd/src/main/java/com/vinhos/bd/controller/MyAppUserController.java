@@ -2,12 +2,15 @@ package com.vinhos.bd.controller;
 
 import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
+import com.vinhos.bd.dao.MyAppUserDAO;
+import com.vinhos.bd.dto.ComprasPorSexoDTO;
 import com.vinhos.bd.model.MyAppUser;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -16,6 +19,7 @@ import java.util.List;
 public class MyAppUserController {
 
     DAO<MyAppUser, String> dao;
+    MyAppUserDAO userDAO;
 
     @GetMapping(value = "/read")
     public MyAppUser getUser(@RequestBody MyAppUser user, HttpServletResponse response) throws ServletException, IOException {
@@ -61,6 +65,52 @@ public class MyAppUserController {
         }
 
         return  listAllUsers;
+    }
+
+    @GetMapping(value = "/sexoPeriodo")
+    public List<ComprasPorSexoDTO> getComprasBySexoPeriodo (@RequestParam String periodo, HttpServletResponse response) throws ServletException, IOException {
+        List<ComprasPorSexoDTO> comprasPorSexoDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            userDAO = daoFactory.getMyAppUserDAO();
+            comprasPorSexoDTOList = userDAO.fetchVendasPorSexoPeriodo(periodo);
+
+            if (comprasPorSexoDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return comprasPorSexoDTOList;
+    }
+
+    @GetMapping(value = "/sexoData")
+    public List<ComprasPorSexoDTO> getComprasBySexoData (@RequestParam Date data_ini, @RequestParam Date data_fim, HttpServletResponse response) throws ServletException, IOException {
+        List<ComprasPorSexoDTO> comprasPorSexoDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            userDAO = daoFactory.getMyAppUserDAO();
+            comprasPorSexoDTOList = userDAO.fetchVendasPorSexoData(data_ini, data_fim);
+
+            if (comprasPorSexoDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return comprasPorSexoDTOList;
     }
 
     @PostMapping(value="/create")
