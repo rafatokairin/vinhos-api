@@ -339,3 +339,38 @@ AFTER INSERT OR UPDATE OR DELETE
 ON vinhos.compra_carrinho_vinho
 FOR EACH ROW
 EXECUTE FUNCTION atualizar_valor_total_compra();
+
+ALTER TABLE vinhos.usuarios
+ADD COLUMN sexo VARCHAR(1)
+ADD COLUMN data_nascimento DATE;
+
+ALTER TABLE vinhos.compras
+ADD COLUMN email_usuario VARCHAR(255);
+
+CREATE OR REPLACE FUNCTION faixa_etaria(data_nascimento DATE)
+RETURNS VARCHAR AS $$
+DECLARE
+    idade INT;
+    faixa VARCHAR;
+BEGIN
+    -- Calcula a idade da pessoa
+    idade := EXTRACT(YEAR FROM AGE(CURRENT_DATE, data_nascimento));
+
+    -- Define a faixa etária com base na idade
+    IF idade < 13 THEN
+        faixa := 'Criança';
+    ELSIF idade BETWEEN 13 AND 17 THEN
+        faixa := 'Adolescente';
+    ELSIF idade BETWEEN 18 AND 24 THEN
+        faixa := 'Jovem Adulto';
+    ELSIF idade BETWEEN 25 AND 64 THEN
+        faixa := 'Adulto';
+    ELSE
+        faixa := 'Idoso';
+    END IF;
+
+    -- Retorna a faixa etária
+    RETURN faixa;
+END;
+$$ LANGUAGE plpgsql;
+
