@@ -1,8 +1,8 @@
--- Retorna o nome e a quantidade vendida, dos vinhos, num certo período de tempo (dias, semanas, meses, anos)
-SELECT nome, quantidade_vendida
+-- RRetorna o nome, quantidade vendida e valor total vendido dos vinhos, num certo período de tempo (dias, semanas, meses, anos)
+SELECT nome, quantidade_vendida, total_vendido
 FROM vinhos.vinhos v
 JOIN (
-    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro
+    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro, SUM(subtotal) AS total_vendido
     FROM vinhos.compra_carrinho_vinho ccv
     JOIN vinhos.compras c ON ccv.numero_compra = c.numero
     GROUP BY numero_vinho, data_registro
@@ -10,11 +10,11 @@ JOIN (
 WHERE r.data_registro >= CURRENT_DATE - INTERVAL '3 days'
 ORDER BY quantidade_vendida DESC;
 
--- Retorna o nome e a quantidade vendida, dos vinhos, num período entre duas datas 
-SELECT nome, quantidade_vendida
+-- Retorna o nome, quantidade vendida e valor total vendido dos vinhos, num período entre duas datas 
+SELECT nome, quantidade_vendida, total_vendido
 FROM vinhos.vinhos v
 JOIN (
-    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro
+    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro, SUM(subtotal) AS total_vendido
     FROM vinhos.compra_carrinho_vinho ccv
     JOIN vinhos.compras c ON ccv.numero_compra = c.numero
     GROUP BY numero_vinho, data_registro
