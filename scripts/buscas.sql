@@ -35,3 +35,37 @@ FROM vinhos.compras c
 WHERE c.data_registro BETWEEN '2024-10-01' AND '2024-10-31'
 GROUP BY DATE(c.data_registro)
 ORDER BY data ASC;
+
+-- Retorna a quantidade e valor total vendido, de vinhos, por sexo, num período de tempo (dias, semanas, meses, anos)
+SELECT sexo, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total
+FROM vinhos.usuarios u
+JOIN (
+	SELECT quantidade_vendida, valor_total, email_usuario, data_registro
+	FROM vinhos.compras c
+	JOIN (
+		SELECT numero_compra, SUM(quantidade) AS quantidade_vendida
+		FROM vinhos.compra_carrinho_vinho
+		GROUP BY numero_compra
+	) AS ccv
+	ON c.numero = ccv.numero_compra
+) compras
+ON u.email = compras.email_usuario AND compras.data_registro >= CURRENT_DATE - INTERVAL '3 days'
+GROUP BY sexo
+ORDER BY valor_total DESC;
+
+-- Retorna a quantidade e valor total vendido, de vinhos, por sexo, num período entre duas datas
+SELECT sexo, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total
+FROM vinhos.usuarios u
+JOIN (
+	SELECT quantidade_vendida, valor_total, email_usuario, data_registro
+	FROM vinhos.compras c
+	JOIN (
+		SELECT numero_compra, SUM(quantidade) AS quantidade_vendida
+		FROM vinhos.compra_carrinho_vinho
+		GROUP BY numero_compra
+	) AS ccv
+	ON c.numero = ccv.numero_compra
+) compras
+ON u.email = compras.email_usuario AND compras.data_registro BETWEEN '2024-10-01' AND '2024-10-31'
+GROUP BY sexo
+ORDER BY valor_total DESC;
