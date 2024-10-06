@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 import com.vinhos.bd.dao.ComprasDAO;
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -112,6 +113,29 @@ public class ComprasController {
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getComprasDAO();
             comprasPorPeriodoDTOList = dao.fetchBuysPerDay(periodo);
+
+            if (comprasPorPeriodoDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return comprasPorPeriodoDTOList;
+    }
+
+    @GetMapping(value = "/porData")
+    public List<ComprasPorPeriodoDTO> getComprasPorData (@RequestParam Date data_ini, @RequestParam Date data_fim, HttpServletResponse response) throws SQLException, IOException {
+        List<ComprasPorPeriodoDTO> comprasPorPeriodoDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            dao = daoFactory.getComprasDAO();
+            comprasPorPeriodoDTOList = dao.fetchBuysByDate(data_ini, data_fim);
 
             if (comprasPorPeriodoDTOList.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found

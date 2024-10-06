@@ -3,10 +3,7 @@ package com.vinhos.bd.dao;
 import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
 import com.vinhos.bd.model.Compras;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -39,6 +36,13 @@ public class PgComprasDAO implements ComprasDAO {
                     "GROUP BY DATE(c.data_registro) " +
                     "ORDER BY data ASC;";
 
+    private static final String RETRIEVE_BUYS_PER_DAY_BY_DATE_RANGE =
+            "SELECT DATE(c.data_registro) AS data, SUM(c.valor_total) AS valor_total_por_dia\n" +
+                    "FROM vinhos.compras c\n" +
+                    "WHERE c.data_registro BETWEEN ? AND ?\n" +
+                    "GROUP BY DATE(c.data_registro)\n" +
+                    "ORDER BY data ASC;";
+
     public PgComprasDAO(Connection connection) {
         this.connection = connection;
     }
@@ -50,6 +54,31 @@ public class PgComprasDAO implements ComprasDAO {
         String query = INTERVAL_QUERY.replace("?", periodo);
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ComprasPorPeriodoDTO comprasPorPeriodoDTO = new ComprasPorPeriodoDTO();
+                    comprasPorPeriodoDTO.setValor_total(resultSet.getDouble("valor_total_por_dia"));
+                    comprasPorPeriodoDTO.setData(resultSet.getDate("data"));
+
+                    comprasPorPeriodoDTOList.add(comprasPorPeriodoDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+
+        return comprasPorPeriodoDTOList;
+    }
+
+    @Override
+    public List<ComprasPorPeriodoDTO> fetchBuysByDate (Date data1, Date data2) throws SQLException {
+        List<ComprasPorPeriodoDTO> comprasPorPeriodoDTOList = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(RETRIEVE_BUYS_PER_DAY_BY_DATE_RANGE)) {
+            statement.setDate(1, data1);
+            statement.setDate(2, data2);
+
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     ComprasPorPeriodoDTO comprasPorPeriodoDTO = new ComprasPorPeriodoDTO();
