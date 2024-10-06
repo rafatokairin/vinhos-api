@@ -61,10 +61,10 @@ public class PgVinhoDAO implements VinhoDAO {
                     "WHERE numero = ?;";
 
     private static final String FETCH_MOST_SOLD_WINES_RECENT =
-            "SELECT nome, quantidade_vendida " +
+            "SELECT nome, quantidade_vendida, total_vendido " +
                     "FROM vinhos.vinhos v " +
                     "JOIN ( " +
-                    "    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro " +
+                    "    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro, SUM(subtotal) AS total_vendido " +
                     "    FROM vinhos.compra_carrinho_vinho ccv " +
                     "    JOIN vinhos.compras c ON ccv.numero_compra = c.numero " +
                     "    GROUP BY numero_vinho, data_registro " +
@@ -73,10 +73,10 @@ public class PgVinhoDAO implements VinhoDAO {
                     "ORDER BY quantidade_vendida DESC;";
 
     private static final String RETRIEVE_TOP_SELLING_WINES_BY_DATE_RANGE =
-            "SELECT nome, quantidade_vendida\n" +
+            "SELECT nome, quantidade_vendida, total_vendido\n" +
                     "FROM vinhos.vinhos v\n" +
                     "JOIN (\n" +
-                    "    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro\n" +
+                    "    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro, SUM(subtotal) AS total_vendido\n" +
                     "    FROM vinhos.compra_carrinho_vinho ccv\n" +
                     "    JOIN vinhos.compras c\n" +
                     "    ON ccv.numero_compra = c.numero\n" +
@@ -101,6 +101,8 @@ public class PgVinhoDAO implements VinhoDAO {
                     VinhosMaisVendidosDTO vinhosMaisVendidosDTO = new VinhosMaisVendidosDTO();
                     vinhosMaisVendidosDTO.setNome(resultSet.getString("nome"));
                     vinhosMaisVendidosDTO.setQuantidadeVendida(resultSet.getInt("quantidade_vendida"));
+                    vinhosMaisVendidosDTO.setTotal_vendido(resultSet.getDouble("total_vendido"));
+
                     vinhosMaisVendidosDTOList.add(vinhosMaisVendidosDTO);
                 }
             }
@@ -126,6 +128,7 @@ public class PgVinhoDAO implements VinhoDAO {
                     VinhosMaisVendidosDTO vinhosMaisVendidosDTO = new VinhosMaisVendidosDTO();
                     vinhosMaisVendidosDTO.setNome(resultSet.getString("nome"));
                     vinhosMaisVendidosDTO.setQuantidadeVendida(resultSet.getInt("quantidade_vendida"));
+                    vinhosMaisVendidosDTO.setTotal_vendido(resultSet.getDouble("total_vendido"));
 
                     vinhosMaisVendidosDTOList.add(vinhosMaisVendidosDTO);
                 }
