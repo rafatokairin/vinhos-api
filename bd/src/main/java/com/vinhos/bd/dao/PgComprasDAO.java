@@ -1,5 +1,6 @@
 package com.vinhos.bd.dao;
 
+import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
 import com.vinhos.bd.model.Compras;
 
 import java.sql.Connection;
@@ -34,7 +35,7 @@ public class PgComprasDAO implements ComprasDAO {
     private static final String INTERVAL_QUERY =
             "SELECT DATE(c.data_registro) AS data, SUM(c.valor_total) AS valor_total_por_dia " +
                     "FROM vinhos.compras c " +
-                    "WHERE c.data_registro >= NOW() - INTERVAL '%s DAYS' " +
+                    "WHERE c.data_registro >= NOW() - INTERVAL '?' " +
                     "GROUP BY DATE(c.data_registro) " +
                     "ORDER BY data ASC;";
 
@@ -43,23 +44,27 @@ public class PgComprasDAO implements ComprasDAO {
     }
 
     @Override
-    public List<Compras> getComprasPorDias(int dias) throws SQLException {
-        List<Compras> comprasList = new ArrayList<>();
-        String intervalQuery = String.format(INTERVAL_QUERY, dias);
-        try (PreparedStatement statement = connection.prepareStatement(intervalQuery)) {
+    public List<ComprasPorPeriodoDTO> fetchBuysPerDay(String periodo) throws SQLException {
+        List<ComprasPorPeriodoDTO> comprasPorPeriodoDTOList = new ArrayList<>();
+
+        String query = INTERVAL_QUERY.replace("?", periodo);
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    Compras compra = new Compras();
-                    compra.setValor_total(resultSet.getDouble("valor_total_por_dia"));
-                    compra.setDataRegistro(resultSet.getDate("data"));
-                    comprasList.add(compra);
+                    ComprasPorPeriodoDTO comprasPorPeriodoDTO = new ComprasPorPeriodoDTO();
+                    comprasPorPeriodoDTO.setValor_total(resultSet.getDouble("valor_total_por_dia"));
+                    comprasPorPeriodoDTO.setData(resultSet.getDate("data"));
+
+                    comprasPorPeriodoDTOList.add(comprasPorPeriodoDTO);
                 }
             }
         } catch (SQLException ex) {
             Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
-            throw new SQLException("Erro ao listar compras por dias.", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
         }
-        return comprasList;
+
+        return comprasPorPeriodoDTOList;
     }
 
     @Override

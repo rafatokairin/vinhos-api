@@ -3,6 +3,7 @@ package com.vinhos.bd.controller;
 import com.google.gson.Gson;
 import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
+import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
 import com.vinhos.bd.model.Compras;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -104,15 +105,15 @@ public class ComprasController {
         }
     }
 
-    @GetMapping(value = "/por-dias")
-    public String getComprasPorDias(@RequestParam int dias, HttpServletResponse response) throws ServletException, IOException {
-        List<Compras> listaCompras;
-        Gson gson = new Gson();
+    @GetMapping(value = "/porPeriodo")
+    public List<ComprasPorPeriodoDTO> getComprasPorPeriodo(@RequestParam String periodo, HttpServletResponse response) throws ServletException, IOException {
+        List<ComprasPorPeriodoDTO> comprasPorPeriodoDTOList;
+
         try (DAOFactory daoFactory = DAOFactory.getInstance()) {
             dao = daoFactory.getComprasDAO();
-            listaCompras = dao.getComprasPorDias(dias);
+            comprasPorPeriodoDTOList = dao.fetchBuysPerDay(periodo);
 
-            if (listaCompras.isEmpty()) {
+            if (comprasPorPeriodoDTOList.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
                 response.getWriter().write("Não há compras registradas para esse período.");
                 return null;
@@ -122,7 +123,8 @@ public class ComprasController {
             response.getWriter().write("Erro: " + ex.getMessage());
             return null;
         }
+
         response.setStatus(HttpServletResponse.SC_OK); // 200 OK
-        return gson.toJson(listaCompras);
+        return comprasPorPeriodoDTOList;
     }
 }
