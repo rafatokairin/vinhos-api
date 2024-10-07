@@ -1,4 +1,4 @@
--- RRetorna o nome, quantidade vendida e valor total vendido dos vinhos, num certo período de tempo (dias, semanas, meses, anos)
+	-- RRetorna o nome, quantidade vendida e valor total vendido dos vinhos, num certo período de tempo (dias, semanas, meses, anos)
 SELECT nome, quantidade_vendida, total_vendido
 FROM vinhos.vinhos v
 JOIN (
@@ -104,47 +104,107 @@ ON u.email = compras.email_usuario AND compras.data_registro BETWEEN '2024-10-01
 GROUP BY faixa_etaria
 ORDER BY valor_total DESC;
 
--- Retorna a quantidade vendida e valor total vendido, de cada categoria de vinho, por faixa etaria, em um período de tempo (dias, semanas, meses, anos)
-SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, 
-		SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total
-FROM vinhos.usuarios u
-JOIN (
-	SELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, SUM(quantidade_vendida) AS quantidade_vendida, SUM(itens.valor_total) AS valor_total
-	FROM vinhos.compras c
-	JOIN (
-		SELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, SUM(ccv.subtotal) AS valor_total
-		FROM vinhos.compra_carrinho_vinho ccv
-		JOIN vinhos.vinhos v
-		ON ccv.numero_vinho = v.numero
-		GROUP BY numero_compra, categoria
-	) itens
-	ON c.numero = itens.numero_compra
-	GROUP BY email_usuario, categoria
-) compras
-ON u.email = compras.email_usuario AND compras.data_registro >= CURRENT_DATE - INTERVAL '1 day'
-GROUP BY faixa_etaria, categoria
-ORDER BY faixa_etaria, quantidade_vendida DESC, valor_total DESC;
+-- Retorna a quantidade vendida e valor total vendido, de cada categoria de vinho, por faixa etaria, em um ultimo período de tempo (dias, semanas, meses, anos)
+WITH
+faixas AS (
+    SELECT unnest(ARRAY['Criança', 'Adolescente', 'Jovem Adulto', 'Adulto', 'Idoso']) AS faixa_etaria,
+           generate_series(1, 5) AS faixa_ordenacao
+),
+cat AS (
+    SELECT unnest(ARRAY['Tinto', 'Branco', 'Espumante', 'Rosé', 'Sobremesa', 'Fortificado']) AS categorias,
+           generate_series(1, 6) AS categoria_ordenacao
+),
+vendas AS (
+    SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, 
+           SUM(quantidade_vendida) AS quantidade_vendida, 
+           SUM(valor_total) AS valor_total
+    FROM vinhos.usuarios u
+    JOIN (
+        SELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, 
+               SUM(quantidade_vendida) AS quantidade_vendida, 
+               SUM(itens.valor_total) AS valor_total
+        FROM vinhos.compras c
+        JOIN (
+            SELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, 
+                   SUM(ccv.subtotal) AS valor_total
+            FROM vinhos.compra_carrinho_vinho ccv
+            JOIN vinhos.vinhos v
+            ON ccv.numero_vinho = v.numero
+            GROUP BY numero_compra, categoria
+        ) itens
+        ON c.numero = itens.numero_compra
+        GROUP BY email_usuario, categoria
+    ) compras
+    ON u.email = compras.email_usuario AND compras.data_registro >= CURRENT_DATE - INTERVAL '1 day'
+    GROUP BY faixa_etaria, categoria
+),
+fai_cat AS (
+    SELECT f.faixa_etaria::VARCHAR AS faixa_etaria, f.faixa_ordenacao,
+           c.categorias::VARCHAR AS categoria, c.categoria_ordenacao
+    FROM faixas f
+    CROSS JOIN cat c
+)
+
+SELECT fai_cat.faixa_etaria::VARCHAR AS faixa_etaria,
+       fai_cat.categoria::VARCHAR AS categoria,
+       COALESCE(v.quantidade_vendida, 0)::NUMERIC AS quantidade_vendida,
+       COALESCE(v.valor_total, 0)::NUMERIC AS valor_total
+FROM fai_cat
+LEFT JOIN vendas v
+ON fai_cat.faixa_etaria = v.faixa_etaria AND fai_cat.categoria = v.categoria
+ORDER BY fai_cat.faixa_ordenacao, fai_cat.categoria_ordenacao;
+
 
 -- Retorna a quantidade vendida e valor total vendido, de cada categoria de vinho, por faixa etaria, em um período entre duas datas
-SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, 
-		SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total
-FROM vinhos.usuarios u
-JOIN (
-	SELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, SUM(quantidade_vendida) AS quantidade_vendida, SUM(itens.valor_total) AS valor_total
-	FROM vinhos.compras c
-	JOIN (
-		SELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, SUM(ccv.subtotal) AS valor_total
-		FROM vinhos.compra_carrinho_vinho ccv
-		JOIN vinhos.vinhos v
-		ON ccv.numero_vinho = v.numero
-		GROUP BY numero_compra, categoria
-	) itens
-	ON c.numero = itens.numero_compra
-	GROUP BY email_usuario, categoria
-) compras
-ON u.email = compras.email_usuario AND compras.data_registro BETWEEN '2024-10-01' AND '2024-10-31'
-GROUP BY faixa_etaria, categoria
-ORDER BY faixa_etaria, quantidade_vendida DESC, valor_total DESC;
+WITH
+faixas AS (
+    SELECT unnest(ARRAY['Criança', 'Adolescente', 'Jovem Adulto', 'Adulto', 'Idoso']) AS faixa_etaria,
+           generate_series(1, 5) AS faixa_ordenacao
+),
+cat AS (
+    SELECT unnest(ARRAY['Tinto', 'Branco', 'Espumante', 'Rosé', 'Sobremesa', 'Fortificado']) AS categorias,
+           generate_series(1, 6) AS categoria_ordenacao
+),
+vendas AS (
+    SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, 
+           SUM(quantidade_vendida) AS quantidade_vendida, 
+           SUM(valor_total) AS valor_total
+    FROM vinhos.usuarios u
+    JOIN (
+        SELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, 
+               SUM(quantidade_vendida) AS quantidade_vendida, 
+               SUM(itens.valor_total) AS valor_total
+        FROM vinhos.compras c
+        JOIN (
+            SELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, 
+                   SUM(ccv.subtotal) AS valor_total
+            FROM vinhos.compra_carrinho_vinho ccv
+            JOIN vinhos.vinhos v
+            ON ccv.numero_vinho = v.numero
+            GROUP BY numero_compra, categoria
+        ) itens
+        ON c.numero = itens.numero_compra
+        GROUP BY email_usuario, categoria
+    ) compras
+    ON u.email = compras.email_usuario AND compras.data_registro BETWEEN '2024-10-01' AND '2024-10-31'
+    GROUP BY faixa_etaria, categoria
+),
+fai_cat AS (
+    SELECT f.faixa_etaria::VARCHAR AS faixa_etaria, f.faixa_ordenacao,
+           c.categorias::VARCHAR AS categoria, c.categoria_ordenacao
+    FROM faixas f
+    CROSS JOIN cat c
+)
+
+SELECT fai_cat.faixa_etaria::VARCHAR AS faixa_etaria,
+       fai_cat.categoria::VARCHAR AS categoria,
+       COALESCE(v.quantidade_vendida, 0)::NUMERIC AS quantidade_vendida,
+       COALESCE(v.valor_total, 0)::NUMERIC AS valor_total
+FROM fai_cat
+LEFT JOIN vendas v
+ON fai_cat.faixa_etaria = v.faixa_etaria AND fai_cat.categoria = v.categoria
+ORDER BY fai_cat.faixa_ordenacao, fai_cat.categoria_ordenacao;
+
 
 -- Retorna a quantidade e valor total vendido, de vinhos, por dia da semana, em um ultimo periodo de tempo
 WITH 
