@@ -341,7 +341,7 @@ FOR EACH ROW
 EXECUTE FUNCTION atualizar_valor_total_compra();
 
 ALTER TABLE vinhos.usuarios
-ADD COLUMN sexo VARCHAR(1)
+ADD COLUMN sexo VARCHAR(1),
 ADD COLUMN data_nascimento DATE;
 
 ALTER TABLE vinhos.compras
