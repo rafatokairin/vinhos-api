@@ -163,9 +163,10 @@ vendas AS (
     GROUP BY dia_da_semana
 )
 
-SELECT d.dia_da_semana,
-       COALESCE(v.quantidade_vendida, 0) AS quantidade_vendida,
-       COALESCE(v.valor_total, 0) AS valor_total
+SELECT 
+       d.dia_da_semana::VARCHAR AS dia_da_semana,
+       COALESCE(v.quantidade_vendida, 0)::NUMERIC AS quantidade_vendida,
+       COALESCE(v.valor_total, 0)::NUMERIC AS valor_total
 FROM dias d
 LEFT JOIN vendas v ON d.dia_da_semana = v.dia_da_semana
 ORDER BY d.dia_ordenacao;
@@ -187,10 +188,10 @@ vendas AS (
     GROUP BY dia_da_semana
 )
 
-SELECT d.dia_da_semana,
-       COALESCE(v.quantidade_vendida, 0) AS quantidade_vendida,
-       COALESCE(v.valor_total, 0) AS valor_total
+SELECT 
+       d.dia_da_semana::VARCHAR AS dia_da_semana,
+       COALESCE(v.quantidade_vendida, 0)::NUMERIC AS quantidade_vendida,
+       COALESCE(v.valor_total, 0)::NUMERIC AS valor_total
 FROM dias d
 LEFT JOIN vendas v ON d.dia_da_semana = v.dia_da_semana
 ORDER BY d.dia_ordenacao;
-
