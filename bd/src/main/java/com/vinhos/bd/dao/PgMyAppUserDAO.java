@@ -2,6 +2,7 @@ package com.vinhos.bd.dao;
 
 import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
 import com.vinhos.bd.dto.ComprasPorSexoDTO;
+import com.vinhos.bd.dto.ComprasProFaixaEtariaDTO;
 import com.vinhos.bd.model.MyAppUser;
 
 import javax.swing.undo.UndoableEditSupport;
@@ -80,6 +81,41 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                     ") compras\n" +
                     "ON u.email = compras.email_usuario AND compras.data_registro BETWEEN ? AND ?\n" +
                     "GROUP BY sexo\n" +
+                    "ORDER BY valor_total DESC;";
+
+    private static final String VENDAS_VINHOS_POR_FAIXA_ETARIA_PERIODO =
+            "SELECT faixa_etaria(data_nascimento) AS faixa_etaria, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
+                    "FROM vinhos.usuarios u\n" +
+                    "JOIN (\n" +
+                    "\tSELECT email_usuario, quantidade_vendida, valor_total, c.data_registro\n" +  // Adicione c.data_registro aqui
+                    "\tFROM vinhos.compras c\n" +
+                    "\tJOIN (\n" +
+                    "\t\tSELECT numero_compra, SUM(quantidade) AS quantidade_vendida\n" +
+                    "\t\tFROM vinhos.compra_carrinho_vinho\n" +
+                    "\t\tGROUP BY numero_compra\n" +
+                    "\t) ccv\n" +
+                    "\tON c.numero = ccv.numero_compra\n" +
+                    ") compras\n" +
+                    "ON u.email = compras.email_usuario AND compras.data_registro >= CURRENT_DATE - INTERVAL '?'\n" +
+                    "GROUP BY faixa_etaria\n" +
+                    "ORDER BY valor_total DESC;";
+
+
+    private static final String VENDAS_VINHOS_POR_FAIXA_ETARIA_DATA =
+            "SELECT faixa_etaria(data_nascimento) AS faixa_etaria, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
+                    "FROM vinhos.usuarios u\n" +
+                    "JOIN (\n" +
+                    "\tSELECT email_usuario, quantidade_vendida, valor_total, c.data_registro\n" +
+                    "\tFROM vinhos.compras c\n" +
+                    "\tJOIN (\n" +
+                    "\t\tSELECT numero_compra, SUM(quantidade) AS quantidade_vendida\n" +
+                    "\t\tFROM vinhos.compra_carrinho_vinho\n" +
+                    "\t\tGROUP BY numero_compra\n" +
+                    "\t) ccv\n" +
+                    "\tON c.numero = ccv.numero_compra\n" +
+                    ") compras\n" +
+                    "ON u.email = compras.email_usuario AND compras.data_registro BETWEEN ? AND ?\n" +
+                    "GROUP BY faixa_etaria\n" +
                     "ORDER BY valor_total DESC;";
 
     public PgMyAppUserDAO (Connection connection) {
@@ -299,5 +335,56 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
         }
 
         return comprasPorSexoDTOList;
+    }
+
+    @Override
+    public List<ComprasProFaixaEtariaDTO> fetchVendasPorFaixaEtariaPeriodo (String periodo) throws SQLException {
+        List<ComprasProFaixaEtariaDTO> comprasProFaixaEtariaDTOS = new ArrayList<>();
+
+        String query = VENDAS_VINHOS_POR_FAIXA_ETARIA_PERIODO.replace("?", periodo);
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ComprasProFaixaEtariaDTO comprasProFaixaEtariaDTO = new ComprasProFaixaEtariaDTO();
+                    comprasProFaixaEtariaDTO.setFaixa_etaria(resultSet.getString("faixa_etaria"));
+                    comprasProFaixaEtariaDTO.setQuantidade_vendida(resultSet.getInt("quantidade_vendida"));
+                    comprasProFaixaEtariaDTO.setValor_total(resultSet.getDouble("valor_total"));
+
+                    comprasProFaixaEtariaDTOS.add(comprasProFaixaEtariaDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+
+        return comprasProFaixaEtariaDTOS;
+    }
+
+    @Override
+    public List<ComprasProFaixaEtariaDTO> fetchVendasPorFaixaEtariaData (Date data1, Date data2) throws SQLException {
+        List<ComprasProFaixaEtariaDTO> comprasProFaixaEtariaDTOS = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(VENDAS_VINHOS_POR_FAIXA_ETARIA_DATA)) {
+            statement.setDate(1, data1);
+            statement.setDate(2, data2);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ComprasProFaixaEtariaDTO comprasProFaixaEtariaDTO = new ComprasProFaixaEtariaDTO();
+                    comprasProFaixaEtariaDTO.setFaixa_etaria(resultSet.getString("faixa_etaria"));
+                    comprasProFaixaEtariaDTO.setQuantidade_vendida(resultSet.getInt("quantidade_vendida"));
+                    comprasProFaixaEtariaDTO.setValor_total(resultSet.getDouble("valor_total"));
+
+                    comprasProFaixaEtariaDTOS.add(comprasProFaixaEtariaDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+
+        return comprasProFaixaEtariaDTOS;
     }
 }

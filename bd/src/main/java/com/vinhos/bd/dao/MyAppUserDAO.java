@@ -1,6 +1,7 @@
 package com.vinhos.bd.dao;
 
 import com.vinhos.bd.dto.ComprasPorSexoDTO;
+import com.vinhos.bd.dto.ComprasProFaixaEtariaDTO;
 import com.vinhos.bd.model.MyAppUser;
 
 import java.sql.Date;
@@ -25,4 +26,8 @@ public interface MyAppUserDAO extends DAO<MyAppUser, String>{
     public List<ComprasPorSexoDTO> fetchVendasPorSexoPeriodo (String periodo) throws SQLException;
 
     public List<ComprasPorSexoDTO> fetchVendasPorSexoData (Date data1, Date data2) throws  SQLException;
+
+    public List<ComprasProFaixaEtariaDTO> fetchVendasPorFaixaEtariaPeriodo (String periodo) throws SQLException;
+
+    public List<ComprasProFaixaEtariaDTO> fetchVendasPorFaixaEtariaData (Date data1, Date data2) throws SQLException;
 }
