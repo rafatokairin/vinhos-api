@@ -1,5 +1,6 @@
 package com.vinhos.bd.dao;
 
+import com.vinhos.bd.dto.ComprasPorDiaDaSemanaDTO;
 import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
 import com.vinhos.bd.model.Compras;
 
@@ -42,6 +43,56 @@ public class PgComprasDAO implements ComprasDAO {
                     "WHERE c.data_registro BETWEEN ? AND ?\n" +
                     "GROUP BY DATE(c.data_registro)\n" +
                     "ORDER BY data ASC;";
+
+    private static final String COMPRAS_DIA_DA_SEMANA_PERIODO =
+            "WITH \n" +
+                    "dias AS (\n" +
+                    "    SELECT unnest(ARRAY['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']) AS dia_da_semana,\n" +
+                    "           generate_series(1, 7) AS dia_ordenacao\n" +
+                    "),\n" +
+                    "vendas AS (\n" +
+                    "    SELECT dia_da_semana(c.data_registro) AS dia_da_semana, \n" +
+                    "           SUM(quantidade) AS quantidade_vendida,\n" +
+                    "           SUM(valor_total) AS valor_total\n" +
+                    "    FROM vinhos.compras c\n" +
+                    "    JOIN vinhos.compra_carrinho_vinho ccv\n" +
+                    "    ON c.numero = ccv.numero_compra\n" +
+                    "    WHERE c.data_registro >= CURRENT_DATE - INTERVAL '?'\n" +
+                    "    GROUP BY dia_da_semana\n" +
+                    ")\n" +
+                    "\n" +
+                    "SELECT \n" +
+                    "       d.dia_da_semana::VARCHAR AS dia_da_semana,\n" +
+                    "       COALESCE(v.quantidade_vendida, 0)::NUMERIC AS quantidade_vendida,\n" +
+                    "       COALESCE(v.valor_total, 0)::NUMERIC AS valor_total\n" +
+                    "FROM dias d\n" +
+                    "LEFT JOIN vendas v ON d.dia_da_semana = v.dia_da_semana\n" +
+                    "ORDER BY d.dia_ordenacao;\n";
+
+    private static final String COMPRAS_DIA_DA_SEMANA_DATA =
+            "WITH \n" +
+                    "dias AS (\n" +
+                    "    SELECT unnest(ARRAY['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']) AS dia_da_semana,\n" +
+                    "           generate_series(1, 7) AS dia_ordenacao\n" +
+                    "),\n" +
+                    "vendas AS (\n" +
+                    "    SELECT dia_da_semana(c.data_registro) AS dia_da_semana, \n" +
+                    "           SUM(quantidade) AS quantidade_vendida,\n" +
+                    "           SUM(valor_total) AS valor_total\n" +
+                    "    FROM vinhos.compras c\n" +
+                    "    JOIN vinhos.compra_carrinho_vinho ccv\n" +
+                    "    ON c.numero = ccv.numero_compra\n" +
+                    "    WHERE c.data_registro BETWEEN ? AND ?\n" +
+                    "    GROUP BY dia_da_semana\n" +
+                    ")\n" +
+                    "\n" +
+                    "SELECT \n" +
+                    "       d.dia_da_semana::VARCHAR AS dia_da_semana,\n" +
+                    "       COALESCE(v.quantidade_vendida, 0)::NUMERIC AS quantidade_vendida,\n" +
+                    "       COALESCE(v.valor_total, 0)::NUMERIC AS valor_total\n" +
+                    "FROM dias d\n" +
+                    "LEFT JOIN vendas v ON d.dia_da_semana = v.dia_da_semana\n" +
+                    "ORDER BY d.dia_ordenacao;";
 
     public PgComprasDAO(Connection connection) {
         this.connection = connection;
@@ -180,5 +231,56 @@ public class PgComprasDAO implements ComprasDAO {
             throw new SQLException("Erro ao listar todas as compras.");
         }
         return comprasList;
+    }
+
+    @Override
+    public List<ComprasPorDiaDaSemanaDTO> fetchBuysByWeekdayPeriodo (String periodo) throws SQLException {
+        List<ComprasPorDiaDaSemanaDTO> comprasPorDiaDaSemanaDTOList = new ArrayList<>();
+
+        String query = COMPRAS_DIA_DA_SEMANA_PERIODO.replace("?", periodo);
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ComprasPorDiaDaSemanaDTO comprasPorDiaDaSemanaDTO = new ComprasPorDiaDaSemanaDTO();
+                    comprasPorDiaDaSemanaDTO.setDia_da_semana(resultSet.getString("dia_da_semana"));
+                    comprasPorDiaDaSemanaDTO.setQuantidade_vendida(resultSet.getInt("quantidade_vendida"));
+                    comprasPorDiaDaSemanaDTO.setValor_total(resultSet.getDouble("valor_total"));
+
+                    comprasPorDiaDaSemanaDTOList.add(comprasPorDiaDaSemanaDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+
+        return comprasPorDiaDaSemanaDTOList;
+    }
+
+    @Override
+    public List<ComprasPorDiaDaSemanaDTO> fetchBuysByWeekdayData (Date data1, Date data2) throws SQLException {
+        List<ComprasPorDiaDaSemanaDTO> comprasPorDiaDaSemanaDTOList = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(COMPRAS_DIA_DA_SEMANA_DATA)) {
+            statement.setDate(1, data1);
+            statement.setDate(2, data2);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ComprasPorDiaDaSemanaDTO comprasPorDiaDaSemanaDTO = new ComprasPorDiaDaSemanaDTO();
+                    comprasPorDiaDaSemanaDTO.setDia_da_semana(resultSet.getString("dia_da_semana"));
+                    comprasPorDiaDaSemanaDTO.setQuantidade_vendida(resultSet.getInt("quantidade_vendida"));
+                    comprasPorDiaDaSemanaDTO.setValor_total(resultSet.getDouble("valor_total"));
+
+                    comprasPorDiaDaSemanaDTOList.add(comprasPorDiaDaSemanaDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+
+        return comprasPorDiaDaSemanaDTOList;
     }
 }
