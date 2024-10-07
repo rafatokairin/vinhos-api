@@ -1,4 +1,43 @@
-	-- RRetorna o nome, quantidade vendida e valor total vendido dos vinhos, num certo período de tempo (dias, semanas, meses, anos)
+-- Rafa
+-- Análise de frequência de compras por usuário num período entre duas datas
+SELECT u.nome AS nome_usuario, COUNT(c.numero) AS total_compras, SUM(c.valor_total) AS total_gasto
+FROM vinhos.usuarios u
+JOIN vinhos.compras c ON u.email = c.email_usuario
+WHERE c.data_registro BETWEEN '2024-01-01' AND '2024-12-31'
+GROUP BY u.nome
+ORDER BY total_gasto DESC;
+
+-- Análise de frequência de compras por usuário num certo período
+SELECT u.nome AS nome_usuario, COUNT(c.numero) AS total_compras, SUM(c.valor_total) AS total_gasto
+FROM vinhos.usuarios u
+JOIN vinhos.compras c ON u.email = c.email_usuario
+WHERE c.data_registro >= CURRENT_DATE - INTERVAL '3 days'
+GROUP BY u.nome
+ORDER BY total_gasto DESC;
+
+-- Vinhos com menor estoque e suas vendas
+SELECT v.nome, v.quantidade_estoque, SUM(ccv.quantidade) AS quantidade_vendida
+FROM vinhos.vinhos v
+LEFT JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho
+GROUP BY v.nome, v.quantidade_estoque
+ORDER BY v.quantidade_estoque ASC
+LIMIT 10;
+
+-- Quais vinhos (informações) foram vendidos num período entre duas datas
+SELECT DISTINCT v.nome, v.vinicula, v.ano, v.categoria, v.estilo 
+FROM vinhos.vinhos v 
+JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho 
+JOIN vinhos.compras cp ON ccv.numero_compra = cp.numero 
+WHERE cp.data_registro BETWEEN '2024-10-01' AND '2024-10-31';
+
+-- Quais vinhos (informações) foram vendidos num certo período
+SELECT DISTINCT v.nome, v.vinicula, v.ano, v.categoria, v.estilo 
+FROM vinhos.vinhos v 
+JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho 
+JOIN vinhos.compras cp ON ccv.numero_compra = cp.numero 
+WHERE cp.data_registro >= CURRENT_DATE - INTERVAL '3 days'
+
+-- Retorna o nome, quantidade vendida e valor total vendido dos vinhos, num certo período de tempo (dias, semanas, meses, anos)
 SELECT nome, quantidade_vendida, total_vendido
 FROM vinhos.vinhos v
 JOIN (
@@ -25,17 +64,18 @@ ORDER BY quantidade_vendida DESC;
 -- Retorna a data e o valor total vendido do dia, para cada dia, num certo período (dias, semanas, meses, anos)
 SELECT DATE(c.data_registro) AS data, SUM(c.valor_total) AS valor_total_por_dia
 FROM vinhos.compras c
-WHERE c.data_registro >= NOW() - INTERVAL '3 days'
+WHERE c.data_registro >= CURRENT_DATE - INTERVAL '3 days'
 GROUP BY DATE(c.data_registro)
-ORDER BY data ASC;
+ORDER BY data DESC;
 
 -- Retorna a data e o valor total vendido do dia, para cada dia, num período entre duas datas
 SELECT DATE(c.data_registro) AS data, SUM(c.valor_total) AS valor_total_por_dia
 FROM vinhos.compras c
 WHERE c.data_registro BETWEEN '2024-10-01' AND '2024-10-31'
 GROUP BY DATE(c.data_registro)
-ORDER BY data ASC;
+ORDER BY data DESC;
 
+-- Chico
 -- Retorna a quantidade e valor total vendido, de vinhos, por sexo, num período de tempo (dias, semanas, meses, anos)
 SELECT sexo, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total
 FROM vinhos.usuarios u
