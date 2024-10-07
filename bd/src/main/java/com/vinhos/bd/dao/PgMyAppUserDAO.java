@@ -120,46 +120,104 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                     "ORDER BY valor_total DESC;";
 
     private static final String CATEGORIAS_MAIS_VENDIDAS_FAIXA_ETARIA_PERIODO =
-            "SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, \n" +
-                    "\t\tSUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
-                    "FROM vinhos.usuarios u\n" +
-                    "JOIN (\n" +
-                    "\tSELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, SUM(quantidade_vendida) AS quantidade_vendida, SUM(itens.valor_total) AS valor_total\n" +
-                    "\tFROM vinhos.compras c\n" +
-                    "\tJOIN (\n" +
-                    "\t\tSELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, SUM(ccv.subtotal) AS valor_total\n" +
-                    "\t\tFROM vinhos.compra_carrinho_vinho ccv\n" +
-                    "\t\tJOIN vinhos.vinhos v\n" +
-                    "\t\tON ccv.numero_vinho = v.numero\n" +
-                    "\t\tGROUP BY numero_compra, categoria\n" +
-                    "\t) itens\n" +
-                    "\tON c.numero = itens.numero_compra\n" +
-                    "\tGROUP BY email_usuario, categoria\n" +
-                    ") compras\n" +
-                    "ON u.email = compras.email_usuario AND compras.data_registro >= CURRENT_DATE - INTERVAL '?'\n" +
-                    "GROUP BY faixa_etaria, categoria\n" +
-                    "ORDER BY faixa_etaria, quantidade_vendida DESC, valor_total DESC;";
+            "WITH\n" +
+                    "faixas AS (\n" +
+                    "    SELECT unnest(ARRAY['Criança', 'Adolescente', 'Jovem Adulto', 'Adulto', 'Idoso']) AS faixa_etaria,\n" +
+                    "           generate_series(1, 5) AS faixa_ordenacao\n" +
+                    "),\n" +
+                    "cat AS (\n" +
+                    "    SELECT unnest(ARRAY['Tinto', 'Branco', 'Espumante', 'Rosé', 'Sobremesa', 'Fortificado']) AS categorias,\n" +
+                    "           generate_series(1, 6) AS categoria_ordenacao\n" +
+                    "),\n" +
+                    "vendas AS (\n" +
+                    "    SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, \n" +
+                    "           SUM(quantidade_vendida) AS quantidade_vendida, \n" +
+                    "           SUM(valor_total) AS valor_total\n" +
+                    "    FROM vinhos.usuarios u\n" +
+                    "    JOIN (\n" +
+                    "        SELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, \n" +
+                    "               SUM(quantidade_vendida) AS quantidade_vendida, \n" +
+                    "               SUM(itens.valor_total) AS valor_total\n" +
+                    "        FROM vinhos.compras c\n" +
+                    "        JOIN (\n" +
+                    "            SELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, \n" +
+                    "                   SUM(ccv.subtotal) AS valor_total\n" +
+                    "            FROM vinhos.compra_carrinho_vinho ccv\n" +
+                    "            JOIN vinhos.vinhos v\n" +
+                    "            ON ccv.numero_vinho = v.numero\n" +
+                    "            GROUP BY numero_compra, categoria\n" +
+                    "        ) itens\n" +
+                    "        ON c.numero = itens.numero_compra\n" +
+                    "        GROUP BY email_usuario, categoria\n" +
+                    "    ) compras\n" +
+                    "    ON u.email = compras.email_usuario AND compras.data_registro >= CURRENT_DATE - INTERVAL '?'\n" +
+                    "    GROUP BY faixa_etaria, categoria\n" +
+                    "),\n" +
+                    "fai_cat AS (\n" +
+                    "    SELECT f.faixa_etaria::VARCHAR AS faixa_etaria, f.faixa_ordenacao,\n" +
+                    "           c.categorias::VARCHAR AS categoria, c.categoria_ordenacao\n" +
+                    "    FROM faixas f\n" +
+                    "    CROSS JOIN cat c\n" +
+                    ")\n" +
+                    "\n" +
+                    "SELECT fai_cat.faixa_etaria::VARCHAR AS faixa_etaria,\n" +
+                    "       fai_cat.categoria::VARCHAR AS categoria,\n" +
+                    "       COALESCE(v.quantidade_vendida, 0)::NUMERIC AS quantidade_vendida,\n" +
+                    "       COALESCE(v.valor_total, 0)::NUMERIC AS valor_total\n" +
+                    "FROM fai_cat\n" +
+                    "LEFT JOIN vendas v\n" +
+                    "ON fai_cat.faixa_etaria = v.faixa_etaria AND fai_cat.categoria = v.categoria\n" +
+                    "ORDER BY fai_cat.faixa_ordenacao, fai_cat.categoria_ordenacao;\n";
 
     private static final String CATEGORIAS_MAIS_VENDIDAS_FAIXA_ETARIA_DATA =
-            "SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, \n" +
-                    "\t\tSUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
-                    "FROM vinhos.usuarios u\n" +
-                    "JOIN (\n" +
-                    "\tSELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, SUM(quantidade_vendida) AS quantidade_vendida, SUM(itens.valor_total) AS valor_total\n" +
-                    "\tFROM vinhos.compras c\n" +
-                    "\tJOIN (\n" +
-                    "\t\tSELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, SUM(ccv.subtotal) AS valor_total\n" +
-                    "\t\tFROM vinhos.compra_carrinho_vinho ccv\n" +
-                    "\t\tJOIN vinhos.vinhos v\n" +
-                    "\t\tON ccv.numero_vinho = v.numero\n" +
-                    "\t\tGROUP BY numero_compra, categoria\n" +
-                    "\t) itens\n" +
-                    "\tON c.numero = itens.numero_compra\n" +
-                    "\tGROUP BY email_usuario, categoria\n" +
-                    ") compras\n" +
-                    "ON u.email = compras.email_usuario AND compras.data_registro BETWEEN ? AND ?\n" +
-                    "GROUP BY faixa_etaria, categoria\n" +
-                    "ORDER BY faixa_etaria, quantidade_vendida DESC, valor_total DESC;\n";
+            "WITH\n" +
+                    "faixas AS (\n" +
+                    "    SELECT unnest(ARRAY['Criança', 'Adolescente', 'Jovem Adulto', 'Adulto', 'Idoso']) AS faixa_etaria,\n" +
+                    "           generate_series(1, 5) AS faixa_ordenacao\n" +
+                    "),\n" +
+                    "cat AS (\n" +
+                    "    SELECT unnest(ARRAY['Tinto', 'Branco', 'Espumante', 'Rosé', 'Sobremesa', 'Fortificado']) AS categorias,\n" +
+                    "           generate_series(1, 6) AS categoria_ordenacao\n" +
+                    "),\n" +
+                    "vendas AS (\n" +
+                    "    SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, \n" +
+                    "           SUM(quantidade_vendida) AS quantidade_vendida, \n" +
+                    "           SUM(valor_total) AS valor_total\n" +
+                    "    FROM vinhos.usuarios u\n" +
+                    "    JOIN (\n" +
+                    "        SELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, \n" +
+                    "               SUM(quantidade_vendida) AS quantidade_vendida, \n" +
+                    "               SUM(itens.valor_total) AS valor_total\n" +
+                    "        FROM vinhos.compras c\n" +
+                    "        JOIN (\n" +
+                    "            SELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, \n" +
+                    "                   SUM(ccv.subtotal) AS valor_total\n" +
+                    "            FROM vinhos.compra_carrinho_vinho ccv\n" +
+                    "            JOIN vinhos.vinhos v\n" +
+                    "            ON ccv.numero_vinho = v.numero\n" +
+                    "            GROUP BY numero_compra, categoria\n" +
+                    "        ) itens\n" +
+                    "        ON c.numero = itens.numero_compra\n" +
+                    "        GROUP BY email_usuario, categoria\n" +
+                    "    ) compras\n" +
+                    "    ON u.email = compras.email_usuario AND compras.data_registro BETWEEN ? AND ?\n" +
+                    "    GROUP BY faixa_etaria, categoria\n" +
+                    "),\n" +
+                    "fai_cat AS (\n" +
+                    "    SELECT f.faixa_etaria::VARCHAR AS faixa_etaria, f.faixa_ordenacao,\n" +
+                    "           c.categorias::VARCHAR AS categoria, c.categoria_ordenacao\n" +
+                    "    FROM faixas f\n" +
+                    "    CROSS JOIN cat c\n" +
+                    ")\n" +
+                    "\n" +
+                    "SELECT fai_cat.faixa_etaria::VARCHAR AS faixa_etaria,\n" +
+                    "       fai_cat.categoria::VARCHAR AS categoria,\n" +
+                    "       COALESCE(v.quantidade_vendida, 0)::NUMERIC AS quantidade_vendida,\n" +
+                    "       COALESCE(v.valor_total, 0)::NUMERIC AS valor_total\n" +
+                    "FROM fai_cat\n" +
+                    "LEFT JOIN vendas v\n" +
+                    "ON fai_cat.faixa_etaria = v.faixa_etaria AND fai_cat.categoria = v.categoria\n" +
+                    "ORDER BY fai_cat.faixa_ordenacao, fai_cat.categoria_ordenacao;";
 
     public PgMyAppUserDAO (Connection connection) {
         this.connection = connection;
