@@ -3,6 +3,7 @@ package com.vinhos.bd.controller;
 import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.dao.MyAppUserDAO;
+import com.vinhos.bd.dto.CategoriaMaisVendidasFaixaIdadeDTO;
 import com.vinhos.bd.dto.ComprasPorSexoDTO;
 import com.vinhos.bd.dto.ComprasProFaixaEtariaDTO;
 import com.vinhos.bd.model.MyAppUser;
@@ -158,6 +159,52 @@ public class MyAppUserController {
 
         response.setStatus(HttpServletResponse.SC_OK); // 200 OK
         return comprasProFaixaEtariaDTOList;
+    }
+
+    @GetMapping(value = "/categoriaFaixaPeriodo")
+    public List<CategoriaMaisVendidasFaixaIdadeDTO> getCategoriasMaisVendidasByFaixaIdadePeriodo (@RequestParam String periodo, HttpServletResponse response) throws ServletException, IOException {
+        List<CategoriaMaisVendidasFaixaIdadeDTO> categoriaMaisVendidasFaixaIdadeDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            userDAO = daoFactory.getMyAppUserDAO();
+            categoriaMaisVendidasFaixaIdadeDTOList = userDAO.fetchCategoriasMaisVendidasFaixaEtariaPeriodo(periodo);
+
+            if (categoriaMaisVendidasFaixaIdadeDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return categoriaMaisVendidasFaixaIdadeDTOList;
+    }
+
+    @GetMapping(value = "/categoriaFaixaData")
+    public List<CategoriaMaisVendidasFaixaIdadeDTO> getCategoriasMaisVendidasByFaixaIdadeData (@RequestParam Date data_ini, @RequestParam Date data_fim, HttpServletResponse response) throws ServletException, IOException {
+        List<CategoriaMaisVendidasFaixaIdadeDTO> categoriaMaisVendidasFaixaIdadeDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            userDAO = daoFactory.getMyAppUserDAO();
+            categoriaMaisVendidasFaixaIdadeDTOList = userDAO.fetchCategoriasMaisVendidasFaixaEtariaData(data_ini, data_fim);
+
+            if (categoriaMaisVendidasFaixaIdadeDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return categoriaMaisVendidasFaixaIdadeDTOList;
     }
 
     @PostMapping(value="/create")

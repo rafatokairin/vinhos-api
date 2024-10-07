@@ -1,5 +1,6 @@
 package com.vinhos.bd.dao;
 
+import com.vinhos.bd.dto.CategoriaMaisVendidasFaixaIdadeDTO;
 import com.vinhos.bd.dto.ComprasPorSexoDTO;
 import com.vinhos.bd.dto.ComprasProFaixaEtariaDTO;
 import com.vinhos.bd.model.MyAppUser;
@@ -30,4 +31,8 @@ public interface MyAppUserDAO extends DAO<MyAppUser, String>{
     public List<ComprasProFaixaEtariaDTO> fetchVendasPorFaixaEtariaPeriodo (String periodo) throws SQLException;
 
     public List<ComprasProFaixaEtariaDTO> fetchVendasPorFaixaEtariaData (Date data1, Date data2) throws SQLException;
+
+    public List<CategoriaMaisVendidasFaixaIdadeDTO> fetchCategoriasMaisVendidasFaixaEtariaPeriodo (String periodo) throws SQLException;
+
+    public List<CategoriaMaisVendidasFaixaIdadeDTO> fetchCategoriasMaisVendidasFaixaEtariaData (Date data1, Date data2) throws SQLException;
 }
