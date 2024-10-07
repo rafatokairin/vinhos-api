@@ -145,3 +145,52 @@ JOIN (
 ON u.email = compras.email_usuario AND compras.data_registro BETWEEN '2024-10-01' AND '2024-10-31'
 GROUP BY faixa_etaria, categoria
 ORDER BY faixa_etaria, quantidade_vendida DESC, valor_total DESC;
+
+-- Retorna a quantidade e valor total vendido, de vinhos, por dia da semana, em um ultimo periodo de tempo
+WITH 
+dias AS (
+    SELECT unnest(ARRAY['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']) AS dia_da_semana,
+           generate_series(1, 7) AS dia_ordenacao
+),
+vendas AS (
+    SELECT dia_da_semana(c.data_registro) AS dia_da_semana, 
+           SUM(quantidade) AS quantidade_vendida,
+           SUM(valor_total) AS valor_total
+    FROM vinhos.compras c
+    JOIN vinhos.compra_carrinho_vinho ccv
+    ON c.numero = ccv.numero_compra
+    WHERE c.data_registro >= CURRENT_DATE - INTERVAL '1 week'
+    GROUP BY dia_da_semana
+)
+
+SELECT d.dia_da_semana,
+       COALESCE(v.quantidade_vendida, 0) AS quantidade_vendida,
+       COALESCE(v.valor_total, 0) AS valor_total
+FROM dias d
+LEFT JOIN vendas v ON d.dia_da_semana = v.dia_da_semana
+ORDER BY d.dia_ordenacao;
+
+-- Retorna a quantidade e valor total vendido, de vinhos, por dia da semana, em um certo periodo entre duas datas
+WITH 
+dias AS (
+    SELECT unnest(ARRAY['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']) AS dia_da_semana,
+           generate_series(1, 7) AS dia_ordenacao
+),
+vendas AS (
+    SELECT dia_da_semana(c.data_registro) AS dia_da_semana, 
+           SUM(quantidade) AS quantidade_vendida,
+           SUM(valor_total) AS valor_total
+    FROM vinhos.compras c
+    JOIN vinhos.compra_carrinho_vinho ccv
+    ON c.numero = ccv.numero_compra
+    WHERE c.data_registro BETWEEN '2024-10-06' AND '2024-10-12'
+    GROUP BY dia_da_semana
+)
+
+SELECT d.dia_da_semana,
+       COALESCE(v.quantidade_vendida, 0) AS quantidade_vendida,
+       COALESCE(v.valor_total, 0) AS valor_total
+FROM dias d
+LEFT JOIN vendas v ON d.dia_da_semana = v.dia_da_semana
+ORDER BY d.dia_ordenacao;
+
