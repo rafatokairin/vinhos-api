@@ -103,3 +103,45 @@ JOIN (
 ON u.email = compras.email_usuario AND compras.data_registro BETWEEN '2024-10-01' AND '2024-10-31'
 GROUP BY faixa_etaria
 ORDER BY valor_total DESC;
+
+-- Retorna a quantidade vendida e valor total vendido, de cada categoria de vinho, por faixa etaria, em um período de tempo (dias, semanas, meses, anos)
+SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, 
+		SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total
+FROM vinhos.usuarios u
+JOIN (
+	SELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, SUM(quantidade_vendida) AS quantidade_vendida, SUM(itens.valor_total) AS valor_total
+	FROM vinhos.compras c
+	JOIN (
+		SELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, SUM(ccv.subtotal) AS valor_total
+		FROM vinhos.compra_carrinho_vinho ccv
+		JOIN vinhos.vinhos v
+		ON ccv.numero_vinho = v.numero
+		GROUP BY numero_compra, categoria
+	) itens
+	ON c.numero = itens.numero_compra
+	GROUP BY email_usuario, categoria
+) compras
+ON u.email = compras.email_usuario AND compras.data_registro >= CURRENT_DATE - INTERVAL '1 day'
+GROUP BY faixa_etaria, categoria
+ORDER BY faixa_etaria, quantidade_vendida DESC, valor_total DESC;
+
+-- Retorna a quantidade vendida e valor total vendido, de cada categoria de vinho, por faixa etaria, em um período entre duas datas
+SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, 
+		SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total
+FROM vinhos.usuarios u
+JOIN (
+	SELECT email_usuario, categoria, MIN(c.data_registro) AS data_registro, SUM(quantidade_vendida) AS quantidade_vendida, SUM(itens.valor_total) AS valor_total
+	FROM vinhos.compras c
+	JOIN (
+		SELECT ccv.numero_compra, v.categoria, SUM(ccv.quantidade) AS quantidade_vendida, SUM(ccv.subtotal) AS valor_total
+		FROM vinhos.compra_carrinho_vinho ccv
+		JOIN vinhos.vinhos v
+		ON ccv.numero_vinho = v.numero
+		GROUP BY numero_compra, categoria
+	) itens
+	ON c.numero = itens.numero_compra
+	GROUP BY email_usuario, categoria
+) compras
+ON u.email = compras.email_usuario AND compras.data_registro BETWEEN '2024-10-01' AND '2024-10-31'
+GROUP BY faixa_etaria, categoria
+ORDER BY faixa_etaria, quantidade_vendida DESC, valor_total DESC;
