@@ -199,6 +199,21 @@ BEGIN
 END;
 $BODY$;
 
+CREATE OR REPLACE FUNCTION vinhos.dia_da_semana(
+	data_input timestamp without time zone)
+    RETURNS character varying
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+    -- Retorna o nome do dia da semana, com a primeira letra em maiúscula
+    RETURN INITCAP(TO_CHAR(data_input, 'TMDay'));
+END;
+$BODY$;
+
+SET lc_time = 'pt_BR';
+
 CREATE TRIGGER trigger_calcular_subtotal
     BEFORE INSERT OR UPDATE 
     ON vinhos.carrinho_vinho
