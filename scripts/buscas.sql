@@ -18,7 +18,7 @@ ORDER BY total_gasto DESC;
 -- Vinhos com menor estoque e suas vendas
 SELECT v.nome, v.quantidade_estoque, SUM(ccv.quantidade) AS quantidade_vendida
 FROM vinhos.vinhos v
-LEFT JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho
+JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho
 GROUP BY v.nome, v.quantidade_estoque
 ORDER BY v.quantidade_estoque ASC
 LIMIT 10;
