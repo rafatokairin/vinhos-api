@@ -2,6 +2,7 @@ package com.vinhos.bd.dao;
 
 import com.vinhos.bd.dto.ComprasPorDiaDaSemanaDTO;
 import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
+import com.vinhos.bd.dto.ComprasPorUsuarioDTO;
 import com.vinhos.bd.model.Compras;
 
 import java.sql.*;
@@ -94,8 +95,76 @@ public class PgComprasDAO implements ComprasDAO {
                     "LEFT JOIN vendas v ON d.dia_da_semana = v.dia_da_semana\n" +
                     "ORDER BY d.dia_ordenacao;";
 
+    private static final String COMPRAS_POR_USUARIO_DATA =
+            "SELECT u.nome AS nome_usuario, COUNT(c.numero) AS total_compras, SUM(c.valor_total) AS total_gasto\n" +
+                    "FROM vinhos.usuarios u\n" +
+                    "JOIN vinhos.compras c ON u.email = c.email_usuario\n" +
+                    "WHERE c.data_registro BETWEEN ? AND ?\n" +
+                    "GROUP BY u.nome\n" +
+                    "ORDER BY total_gasto DESC;";
+
+    private static final String COMPRAS_POR_USUARIO_PERIODO =
+            "SELECT u.nome AS nome_usuario, COUNT(c.numero) AS total_compras, SUM(c.valor_total) AS total_gasto\n" +
+                    "FROM vinhos.usuarios u\n" +
+                    "JOIN vinhos.compras c ON u.email = c.email_usuario\n" +
+                    "WHERE c.data_registro >= CURRENT_DATE - INTERVAL '?'\n" +
+                    "GROUP BY u.nome\n" +
+                    "ORDER BY total_gasto DESC;";
+
     public PgComprasDAO(Connection connection) {
         this.connection = connection;
+    }
+
+
+    @Override
+    public List<ComprasPorUsuarioDTO> fetchBuysByUserPeriodo (String periodo) throws SQLException {
+        List<ComprasPorUsuarioDTO> comprasPorUsuarioDTOList = new ArrayList<>();
+
+        String query = COMPRAS_POR_USUARIO_PERIODO.replace("?", periodo);
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ComprasPorUsuarioDTO comprasPorUsuarioDTO = new ComprasPorUsuarioDTO();
+                    comprasPorUsuarioDTO.setNome_usuario(resultSet.getString("nome_usuario"));
+                    comprasPorUsuarioDTO.setTotal_compras(resultSet.getInt("total_compras"));
+                    comprasPorUsuarioDTO.setTotal_gasto(resultSet.getDouble("total_gasto"));
+
+                    comprasPorUsuarioDTOList.add(comprasPorUsuarioDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+
+        return comprasPorUsuarioDTOList;
+    }
+
+    @Override
+    public List<ComprasPorUsuarioDTO> fetchBuysByUserData (Date data1, Date data2) throws SQLException {
+        List<ComprasPorUsuarioDTO> comprasPorUsuarioDTOList = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(COMPRAS_POR_USUARIO_DATA)) {
+            statement.setDate(1, data1);
+            statement.setDate(2, data2);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ComprasPorUsuarioDTO comprasPorUsuarioDTO = new ComprasPorUsuarioDTO();
+                    comprasPorUsuarioDTO.setNome_usuario(resultSet.getString("nome_usuario"));
+                    comprasPorUsuarioDTO.setTotal_compras(resultSet.getInt("total_compras"));
+                    comprasPorUsuarioDTO.setTotal_gasto(resultSet.getDouble("total_gasto"));
+
+                    comprasPorUsuarioDTOList.add(comprasPorUsuarioDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+
+        return comprasPorUsuarioDTOList;
     }
 
     @Override

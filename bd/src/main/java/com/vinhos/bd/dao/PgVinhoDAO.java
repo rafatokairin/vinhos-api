@@ -61,28 +61,21 @@ public class PgVinhoDAO implements VinhoDAO {
                     "WHERE numero = ?;";
 
     private static final String FETCH_MOST_SOLD_WINES_RECENT =
-            "SELECT nome, quantidade_vendida, total_vendido " +
-                    "FROM vinhos.vinhos v " +
-                    "JOIN ( " +
-                    "    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro, SUM(subtotal) AS total_vendido " +
-                    "    FROM vinhos.compra_carrinho_vinho ccv " +
-                    "    JOIN vinhos.compras c ON ccv.numero_compra = c.numero " +
-                    "    GROUP BY numero_vinho, data_registro " +
-                    ") AS r ON v.numero = r.numero " +
-                    "WHERE r.data_registro >= CURRENT_DATE - INTERVAL '?' " +
+            "SELECT v.nome, SUM(ccv.quantidade) AS quantidade_vendida, SUM(ccv.subtotal) AS total_vendido\n" +
+                    "FROM vinhos.vinhos v\n" +
+                    "JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho\n" +
+                    "JOIN vinhos.compras c ON ccv.numero_compra = c.numero\n" +
+                    "WHERE c.data_registro >= CURRENT_DATE - INTERVAL '?'\n" +
+                    "GROUP BY v.nome\n" +
                     "ORDER BY quantidade_vendida DESC;";
 
     private static final String RETRIEVE_TOP_SELLING_WINES_BY_DATE_RANGE =
-            "SELECT nome, quantidade_vendida, total_vendido\n" +
+            "SELECT v.nome, SUM(ccv.quantidade) AS quantidade_vendida, SUM(ccv.subtotal) AS total_vendido\n" +
                     "FROM vinhos.vinhos v\n" +
-                    "JOIN (\n" +
-                    "    SELECT numero_vinho AS numero, SUM(quantidade) AS quantidade_vendida, data_registro, SUM(subtotal) AS total_vendido\n" +
-                    "    FROM vinhos.compra_carrinho_vinho ccv\n" +
-                    "    JOIN vinhos.compras c\n" +
-                    "    ON ccv.numero_compra = c.numero\n" +
-                    "    GROUP BY numero_vinho, data_registro\n" +
-                    ") AS r\n" +
-                    "ON v.numero = r.numero AND r.data_registro BETWEEN ? AND ?\n" +
+                    "JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho\n" +
+                    "JOIN vinhos.compras c ON ccv.numero_compra = c.numero\n" +
+                    "WHERE c.data_registro BETWEEN ? AND ?\n" +
+                    "GROUP BY v.nome\n" +
                     "ORDER BY quantidade_vendida DESC;";
 
     public PgVinhoDAO(Connection connection) {

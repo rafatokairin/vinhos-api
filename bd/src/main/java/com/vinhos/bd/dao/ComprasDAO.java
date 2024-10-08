@@ -2,6 +2,7 @@ package com.vinhos.bd.dao;
 
 import com.vinhos.bd.dto.ComprasPorDiaDaSemanaDTO;
 import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
+import com.vinhos.bd.dto.ComprasPorUsuarioDTO;
 import com.vinhos.bd.model.Compras;
 
 import java.sql.Date;
@@ -32,4 +33,7 @@ public interface ComprasDAO extends DAO<Compras, Integer> {
 
     public List<ComprasPorDiaDaSemanaDTO> fetchBuysByWeekdayData (Date data1, Date data2) throws SQLException;
 
+    public List<ComprasPorUsuarioDTO> fetchBuysByUserData (Date data1, Date data2) throws SQLException;
+
+    public List<ComprasPorUsuarioDTO> fetchBuysByUserPeriodo (String periodo) throws SQLException;
 }
