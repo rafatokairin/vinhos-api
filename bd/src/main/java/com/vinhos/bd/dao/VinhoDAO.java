@@ -1,5 +1,6 @@
 package com.vinhos.bd.dao;
 
+import com.vinhos.bd.dto.MenoresEstoquesDTO;
 import com.vinhos.bd.dto.VinhosMaisVendidosDTO;
 import com.vinhos.bd.model.Vinho;
 
@@ -34,4 +35,6 @@ public interface VinhoDAO extends DAO<Vinho, Integer>{
      * @throws SQLException
      */
     public List<VinhosMaisVendidosDTO> fetchMostSoldWinesRecent(String period) throws SQLException;
+
+    public List<MenoresEstoquesDTO> fetchLessEstoques(String limit) throws SQLException;
 }

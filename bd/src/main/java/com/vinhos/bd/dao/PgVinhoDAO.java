@@ -1,5 +1,6 @@
 package com.vinhos.bd.dao;
 
+import com.vinhos.bd.dto.MenoresEstoquesDTO;
 import com.vinhos.bd.dto.VinhosMaisVendidosDTO;
 import com.vinhos.bd.model.Vinho;
 
@@ -78,8 +79,40 @@ public class PgVinhoDAO implements VinhoDAO {
                     "GROUP BY v.nome\n" +
                     "ORDER BY quantidade_vendida DESC;";
 
+    private static final String MENORES_ESTOQUES_BY_LIMIT =
+            "SELECT v.nome, v.quantidade_estoque, SUM(ccv.quantidade) AS quantidade_vendida\n" +
+                    "FROM vinhos.vinhos v\n" +
+                    "LEFT JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho\n" +
+                    "GROUP BY v.nome, v.quantidade_estoque\n" +
+                    "ORDER BY v.quantidade_estoque ASC\n" +
+                    "LIMIT ?;";
+
     public PgVinhoDAO(Connection connection) {
         this.connection = connection;
+    }
+
+    @Override
+    public List<MenoresEstoquesDTO> fetchLessEstoques(String limit) throws SQLException {
+        List<MenoresEstoquesDTO> menoresEstoquesDTOList = new ArrayList<>();
+
+        String query = MENORES_ESTOQUES_BY_LIMIT.replace("?", limit); // Substitui '?' pela entrada
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    MenoresEstoquesDTO menoresEstoquesDTO = new MenoresEstoquesDTO();
+                    menoresEstoquesDTO.setNome(resultSet.getString("nome"));
+                    menoresEstoquesDTO.setQuantidade_estoque(resultSet.getInt("quantidade_estoque"));
+                    menoresEstoquesDTO.setQuantidade_estoque(resultSet.getInt("quantidade_vendida"));
+
+                    menoresEstoquesDTOList.add(menoresEstoquesDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgVinhoDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao buscar vinhos por periodo de tempo.", ex);
+        }
+        return menoresEstoquesDTOList;
     }
 
     @Override

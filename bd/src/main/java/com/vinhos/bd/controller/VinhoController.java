@@ -3,6 +3,7 @@ package com.vinhos.bd.controller;
 import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.dao.VinhoDAO;
+import com.vinhos.bd.dto.MenoresEstoquesDTO;
 import com.vinhos.bd.dto.VinhosMaisVendidosDTO;
 import com.vinhos.bd.model.Vinho;
 import com.google.gson.Gson;
@@ -175,5 +176,28 @@ public class VinhoController {
 
         response.setStatus(HttpServletResponse.SC_OK); // 200 OK
         return  vinhosMaisVendidosDTOList;
+    }
+
+    @GetMapping(value = "/menosEstoque")
+    public List<MenoresEstoquesDTO> getVinhosMenosEstoques(@RequestParam String limit, HttpServletResponse response) throws ServletException, IOException {
+        List<MenoresEstoquesDTO> menoresEstoquesDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            vinhoDAO = daoFactory.getVinhoDAO();
+            menoresEstoquesDTOList = vinhoDAO.fetchLessEstoques(limit);
+
+            if (menoresEstoquesDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Nenhum vinho encontrado para o período fornecido.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException | IOException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return menoresEstoquesDTOList;
     }
 }
