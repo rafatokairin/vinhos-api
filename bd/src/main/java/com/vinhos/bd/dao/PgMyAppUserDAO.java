@@ -27,12 +27,12 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                     "VALUES(?, ?, md5(?), ?, ?);";
 
     private static final String ALL_QUERY =
-            "SELECT nome, email, data_registro " +
+            "SELECT nome, email, sexo, data_nascimento, data_registro " +
                     "FROM vinhos.usuarios " +
                     "ORDER BY nome;";
 
     private static final String READ_QUERY =
-            "SELECT nome, email, data_registro  " +
+            "SELECT nome, email, sexo, data_nascimento, data_registro  " +
                     "FROM vinhos.usuarios " +
                     "WHERE email = ?;";
 
