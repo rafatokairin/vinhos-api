@@ -3,6 +3,8 @@ package com.vinhos.bd.controller;
 import com.vinhos.bd.dao.CompraCarrinhoVinhoDAO;
 import com.vinhos.bd.dao.DAO;
 import com.vinhos.bd.dao.DAOFactory;
+import com.vinhos.bd.dto.ComprasPorUsuarioDTO;
+import com.vinhos.bd.dto.VinhosVendidosPorPeriodoDTO;
 import com.vinhos.bd.model.CompraCarrinhoVinho;
 import com.vinhos.bd.model.CompraCarrinhoVinhoID;
 import jakarta.servlet.ServletException;
@@ -10,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -128,5 +131,51 @@ public class CompraCarrinhoVinhoController {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal server error
             response.getWriter().write("Erro: " + ex.getMessage());
         }
+    }
+
+    @GetMapping(value = "/vendidosPorData")
+    public List<VinhosVendidosPorPeriodoDTO> getVendidosData (@RequestParam String periodo, HttpServletResponse response) throws ServletException, IOException {
+        List<VinhosVendidosPorPeriodoDTO> vinhosVendidosPorPeriodoDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            compraCarrinhoVinhoDAO = daoFactory.getCompraCarrinhoVinhoDAO();
+            vinhosVendidosPorPeriodoDTOList = compraCarrinhoVinhoDAO.fetchWinesSoldByData(periodo);
+
+            if (vinhosVendidosPorPeriodoDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return vinhosVendidosPorPeriodoDTOList;
+    }
+
+    @GetMapping(value = "/vendidosPorPeriodo")
+    public List<VinhosVendidosPorPeriodoDTO> getVendidosPeriodo (@RequestParam Date data_ini, @RequestParam Date data_fim, HttpServletResponse response) throws ServletException, IOException {
+        List<VinhosVendidosPorPeriodoDTO> vinhosVendidosPorPeriodoDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            compraCarrinhoVinhoDAO = daoFactory.getCompraCarrinhoVinhoDAO();
+            vinhosVendidosPorPeriodoDTOList = compraCarrinhoVinhoDAO.fetchWinesSoldByPeriod(data_ini, data_fim);
+
+            if (vinhosVendidosPorPeriodoDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return vinhosVendidosPorPeriodoDTOList;
     }
 }
