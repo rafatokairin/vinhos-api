@@ -6,6 +6,7 @@ import com.vinhos.bd.dao.DAOFactory;
 import com.vinhos.bd.dto.ComprasPorDiaDaSemanaDTO;
 import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
 import com.vinhos.bd.dto.ComprasPorUsuarioDTO;
+import com.vinhos.bd.dto.ValorCompradoPorDiaDTO;
 import com.vinhos.bd.model.Compras;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -244,5 +245,51 @@ public class ComprasController {
 
         response.setStatus(HttpServletResponse.SC_OK); // 200 OK
         return comprasPorUsuarioDTOList;
+    }
+
+    @GetMapping(value = "/valorCompradoDiaPeriodo")
+    public List<ValorCompradoPorDiaDTO> getCompradoDiaPeriodo (@RequestParam String periodo, HttpServletResponse response) throws ServletException, IOException {
+        List<ValorCompradoPorDiaDTO> valorCompradoPorDiaDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            dao = daoFactory.getComprasDAO();
+            valorCompradoPorDiaDTOList = dao.fetchBuysPerDayByPeriodo(periodo);
+
+            if (valorCompradoPorDiaDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return valorCompradoPorDiaDTOList;
+    }
+
+    @GetMapping(value = "/valorCompradoDiaData")
+    public List<ValorCompradoPorDiaDTO> getCompradoDiaData (@RequestParam Date data_ini, @RequestParam Date data_fim, HttpServletResponse response) throws ServletException, IOException {
+        List<ValorCompradoPorDiaDTO> valorCompradoPorDiaDTOList;
+
+        try (DAOFactory daoFactory = DAOFactory.getInstance()) {
+            dao = daoFactory.getComprasDAO();
+            valorCompradoPorDiaDTOList = dao.fetchBuysPerDayByData(data_ini, data_fim);
+
+            if (valorCompradoPorDiaDTOList.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404 Not Found
+                response.getWriter().write("Não há compras registradas para esse período.");
+                return null;
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 Internal Server Error
+            response.getWriter().write("Erro: " + ex.getMessage());
+            return null;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+        return valorCompradoPorDiaDTOList;
     }
 }

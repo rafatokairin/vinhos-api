@@ -3,6 +3,7 @@ package com.vinhos.bd.dao;
 import com.vinhos.bd.dto.ComprasPorDiaDaSemanaDTO;
 import com.vinhos.bd.dto.ComprasPorPeriodoDTO;
 import com.vinhos.bd.dto.ComprasPorUsuarioDTO;
+import com.vinhos.bd.dto.ValorCompradoPorDiaDTO;
 import com.vinhos.bd.model.Compras;
 
 import java.sql.*;
@@ -111,10 +112,70 @@ public class PgComprasDAO implements ComprasDAO {
                     "GROUP BY u.nome\n" +
                     "ORDER BY total_gasto DESC;";
 
+    private static final String VALOR_COMPRADO_DIA_POR_DATA =
+            "SELECT DATE(c.data_registro) AS data, SUM(c.valor_total) AS valor_total_por_dia\n" +
+                    "FROM vinhos.compras c\n" +
+                    "WHERE c.data_registro BETWEEN ? AND ?\n" +
+                    "GROUP BY DATE(c.data_registro)\n" +
+                    "ORDER BY data DESC;";
+
+    private static final String VALOR_COMPRADO_DIA_POR_PERIODO =
+            "SELECT DATE(c.data_registro) AS data, SUM(c.valor_total) AS valor_total_por_dia\n" +
+                    "FROM vinhos.compras c\n" +
+                    "WHERE c.data_registro >= CURRENT_DATE - INTERVAL '?'\n" +
+                    "GROUP BY DATE(c.data_registro)\n" +
+                    "ORDER BY data DESC;";
+
     public PgComprasDAO(Connection connection) {
         this.connection = connection;
     }
 
+    @Override
+    public List<ValorCompradoPorDiaDTO> fetchBuysPerDayByPeriodo (String periodo) throws SQLException {
+        List<ValorCompradoPorDiaDTO> valorCompradoPorDiaDTOList = new ArrayList<>();
+
+        String query = VALOR_COMPRADO_DIA_POR_PERIODO.replace("?", periodo);
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ValorCompradoPorDiaDTO valorCompradoPorDiaDTO = new ValorCompradoPorDiaDTO();
+                    valorCompradoPorDiaDTO.setData(resultSet.getDate("data"));
+                    valorCompradoPorDiaDTO.setValor_total_por_dia(resultSet.getInt("valor_total_por_dia"));
+
+                    valorCompradoPorDiaDTOList.add(valorCompradoPorDiaDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+        return valorCompradoPorDiaDTOList;
+    }
+
+    @Override
+    public List<ValorCompradoPorDiaDTO> fetchBuysPerDayByData (Date data1, Date data2) throws SQLException {
+        List<ValorCompradoPorDiaDTO> valorCompradoPorDiaDTOList = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(VALOR_COMPRADO_DIA_POR_DATA)) {
+            statement.setDate(1, data1);
+            statement.setDate(2, data2);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ValorCompradoPorDiaDTO valorCompradoPorDiaDTO = new ValorCompradoPorDiaDTO();
+                    valorCompradoPorDiaDTO.setData(resultSet.getDate("data"));
+                    valorCompradoPorDiaDTO.setValor_total_por_dia(resultSet.getInt("valor_total_por_dia"));
+
+                    valorCompradoPorDiaDTOList.add(valorCompradoPorDiaDTO);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
+            throw new SQLException("Erro ao listar compras por período.", ex);
+        }
+        return valorCompradoPorDiaDTOList;
+    }
 
     @Override
     public List<ComprasPorUsuarioDTO> fetchBuysByUserPeriodo (String periodo) throws SQLException {
@@ -137,7 +198,6 @@ public class PgComprasDAO implements ComprasDAO {
             Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
             throw new SQLException("Erro ao listar compras por período.", ex);
         }
-
         return comprasPorUsuarioDTOList;
     }
 
@@ -163,7 +223,6 @@ public class PgComprasDAO implements ComprasDAO {
             Logger.getLogger(PgComprasDAO.class.getName()).log(Level.SEVERE, "DAO", ex);
             throw new SQLException("Erro ao listar compras por período.", ex);
         }
-
         return comprasPorUsuarioDTOList;
     }
 
