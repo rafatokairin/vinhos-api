@@ -53,7 +53,7 @@ public class PgComprasDAO implements ComprasDAO {
                     "           generate_series(1, 7) AS dia_ordenacao\n" +
                     "),\n" +
                     "vendas AS (\n" +
-                    "    SELECT dia_da_semana(c.data_registro) AS dia_da_semana, \n" +
+                    "    SELECT vinhos.dia_da_semana(c.data_registro) AS dia_da_semana, \n" +
                     "           SUM(quantidade) AS quantidade_vendida,\n" +
                     "           SUM(valor_total) AS valor_total\n" +
                     "    FROM vinhos.compras c\n" +
@@ -78,7 +78,7 @@ public class PgComprasDAO implements ComprasDAO {
                     "           generate_series(1, 7) AS dia_ordenacao\n" +
                     "),\n" +
                     "vendas AS (\n" +
-                    "    SELECT dia_da_semana(c.data_registro) AS dia_da_semana, \n" +
+                    "    SELECT vinhos.dia_da_semana(c.data_registro) AS dia_da_semana, \n" +
                     "           SUM(quantidade) AS quantidade_vendida,\n" +
                     "           SUM(valor_total) AS valor_total\n" +
                     "    FROM vinhos.compras c\n" +

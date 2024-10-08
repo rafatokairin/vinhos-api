@@ -85,7 +85,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                     "ORDER BY valor_total DESC;";
 
     private static final String VENDAS_VINHOS_POR_FAIXA_ETARIA_PERIODO =
-            "SELECT faixa_etaria(data_nascimento) AS faixa_etaria, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
+            "SELECT vinhos.faixa_etaria(data_nascimento) AS faixa_etaria, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
                     "FROM vinhos.usuarios u\n" +
                     "JOIN (\n" +
                     "\tSELECT email_usuario, quantidade_vendida, valor_total, c.data_registro\n" +  // Adicione c.data_registro aqui
@@ -103,7 +103,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
 
 
     private static final String VENDAS_VINHOS_POR_FAIXA_ETARIA_DATA =
-            "SELECT faixa_etaria(data_nascimento) AS faixa_etaria, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
+            "SELECT vinhos.faixa_etaria(data_nascimento) AS faixa_etaria, SUM(quantidade_vendida) AS quantidade_vendida, SUM(valor_total) AS valor_total\n" +
                     "FROM vinhos.usuarios u\n" +
                     "JOIN (\n" +
                     "\tSELECT email_usuario, quantidade_vendida, valor_total, c.data_registro\n" +
@@ -130,7 +130,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                     "           generate_series(1, 6) AS categoria_ordenacao\n" +
                     "),\n" +
                     "vendas AS (\n" +
-                    "    SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, \n" +
+                    "    SELECT vinhos.faixa_etaria(data_nascimento) AS faixa_etaria, categoria, \n" +
                     "           SUM(quantidade_vendida) AS quantidade_vendida, \n" +
                     "           SUM(valor_total) AS valor_total\n" +
                     "    FROM vinhos.usuarios u\n" +
@@ -180,7 +180,7 @@ public class PgMyAppUserDAO implements MyAppUserDAO {
                     "           generate_series(1, 6) AS categoria_ordenacao\n" +
                     "),\n" +
                     "vendas AS (\n" +
-                    "    SELECT faixa_etaria(data_nascimento) AS faixa_etaria, categoria, \n" +
+                    "    SELECT vinhos.faixa_etaria(data_nascimento) AS faixa_etaria, categoria, \n" +
                     "           SUM(quantidade_vendida) AS quantidade_vendida, \n" +
                     "           SUM(valor_total) AS valor_total\n" +
                     "    FROM vinhos.usuarios u\n" +
