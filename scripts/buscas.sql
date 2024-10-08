@@ -42,7 +42,7 @@ SELECT v.nome, SUM(ccv.quantidade) AS quantidade_vendida, SUM(ccv.subtotal) AS t
 FROM vinhos.vinhos v
 JOIN vinhos.compra_carrinho_vinho ccv ON v.numero = ccv.numero_vinho
 JOIN vinhos.compras c ON ccv.numero_compra = c.numero
-WHERE r.data_registro >= CURRENT_DATE - INTERVAL '3 days'
+WHERE c.data_registro >= CURRENT_DATE - INTERVAL '3 days'
 GROUP BY v.nome
 ORDER BY quantidade_vendida DESC;
 
